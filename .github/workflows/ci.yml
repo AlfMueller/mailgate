@@ -70,7 +70,11 @@ jobs:
           MAILGATE_DOMAIN=mailgate.example.test MAILGATE_IMAP_ALLOWED_HOST=imap.example.test \
             docker compose -f compose.yaml -f compose.production.yaml config --quiet
       - name: Build and start the full stack
-        run: docker compose --profile integration up --build --detach --wait
+        run: |
+          docker compose --profile integration up --build --detach --wait \
+            test-imap-upstream web api worker proxy
+      - name: Run PostgreSQL boundary integration tests
+        run: docker compose --profile integration run --build --rm test-postgres-boundaries
       - name: Verify HTTP process separation
         run: |
           test "$(curl --silent --output /dev/null --write-out '%{http_code}' http://127.0.0.1:8080/health/ready)" = 200
