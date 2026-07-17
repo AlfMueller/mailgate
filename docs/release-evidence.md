@@ -40,12 +40,18 @@ accepts only `v*` refs. Release tags re-run the full CI/security workflows for t
 require that commit to belong to `main`, build once, scan the exact candidate digest, publish SPDX
 and CycloneDX SBOMs, add GitHub build provenance, and then promote that same digest.
 
-## External acceptance still required
+## Public V1 work and external acceptance still required
 
+- Implement and benchmark the shadow mode, pinned scanner interface, versioned deterministic
+  auto-approval policy, kill switch, decision provenance and owner correction workflow described in
+  `docs/automation-plan.md`.
+- Provide and test the reference Hermes/MCP action-guardrail policy without adding write authority
+  to MailGate.
 - Rotate every credential that has appeared outside the local secret store before public deployment.
 - A person unfamiliar with MailGate must complete `docs/installation-acceptance.md` in 15 minutes.
-- The isolated pilot must complete 28 consecutive days using `docs/pilot-runbook.md` and the final
-  report must document false positives, false negatives, incidents, backup checks, and upgrades.
+- The isolated pilot must complete 28 consecutive days using `docs/pilot-runbook.md`, demonstrate at
+  least 70% correct automatic approval of eligible messages, and document false positives, false
+  negatives, incidents, backup checks, and upgrades.
 
-These external gates cannot be replaced by automated tests. Do not publish `v1.0.0` until their
-evidence is attached to the release decision.
+Do not publish `v1.0.0` until the automation implementation and its automated checks are green and
+the external evidence is attached to the release decision.
