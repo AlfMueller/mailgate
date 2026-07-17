@@ -11,7 +11,7 @@ Design feedback, documentation corrections, tests, focused code changes, and thr
 Before proposing a change:
 
 1. Read [docs/projektplan.md](docs/projektplan.md) and [docs/threat-model.md](docs/threat-model.md).
-2. Check that the proposal preserves the strict read-only boundary toward Hermes.
+2. Check that the proposal preserves the strict read-only boundary toward the AI agent.
 3. Use only synthetic and clearly fictional examples.
 4. Explain any new data flow, external connection, privilege, secret, or retained data.
 5. Add or update tests for behavior changes.

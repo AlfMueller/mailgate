@@ -1,10 +1,10 @@
 # MailGate
 
-> **Deutsch:** MailGate wird ein selbst gehostetes E-Mail-Sicherheitstor für den persönlichen Hermes-Assistenten. Es prüft und bereinigt Nachrichten und gibt ausschließlich freigegebene Inhalte über eine streng begrenzte Lese-API weiter. Das Projekt befindet sich noch in der Planungsphase; es gibt noch keine installierbare Anwendung.
+> **Deutsch:** MailGate wird ein selbst gehostetes E-Mail-Sicherheitstor für persönliche KI-Agenten. Es prüft und bereinigt Nachrichten und gibt ausschließlich freigegebene Inhalte über eine streng begrenzte Lese-API weiter. Das Projekt befindet sich noch in der Planungsphase; es gibt noch keine installierbare Anwendung.
 
-MailGate is a planned open-source, self-hosted Docker application that places a deliberately narrow security boundary between a personal mailbox and an AI assistant.
+MailGate is a planned open-source, self-hosted Docker application that places a deliberately narrow security boundary between a personal mailbox and an AI agent.
 
-Each installation belongs to one owner and connects only to that owner's mailboxes. MailGate will inspect authentication signals such as SPF, DKIM, DMARC, and ARC, safely normalize message content, assess security risks, categorize messages, and apply deterministic policy rules. Only sanitized and explicitly approved information may be exposed to Hermes.
+Each installation belongs to one owner and connects only to that owner's mailboxes. MailGate will inspect authentication signals such as SPF, DKIM, DMARC, and ARC, safely normalize message content, assess security risks, categorize messages, and apply deterministic policy rules. Only sanitized and explicitly approved information may be exposed to the configured AI agent.
 
 ## Project status
 
@@ -26,12 +26,12 @@ Then check `http://127.0.0.1:8080/health/live` and `/health/ready`. This starts 
 ## Core security boundaries
 
 - Email content is untrusted data, never an instruction channel.
-- Hermes never receives IMAP, SMTP, database, deletion, move, or write access.
+- The AI agent never receives IMAP, SMTP, database, deletion, move, or write access.
 - The classifier receives no mailbox credentials and has no tools.
 - Model output is treated as untrusted input and must match a strict schema.
 - Only deterministic application policy can change message state.
 - Suspicious, ambiguous, or failed processing is quarantined or held for review; it is not silently deleted.
-- The Hermes API is read-only and exposes only sanitized, approved data with the minimum scope `messages:read:approved`.
+- The AI-agent API is read-only and exposes only sanitized, approved data with the minimum scope `messages:read:approved`.
 - Each installation manages only its owner's data; there is no central MailGate customer database.
 - Telemetry is disabled by default.
 
@@ -51,11 +51,11 @@ flowchart LR
     Policy --> DB["PostgreSQL"]
     DB --> Web["Django web UI"]
     DB --> API["Restricted read-only API"]
-    API --> Hermes["Owner's Hermes assistant"]
+    API --> Agent["Owner's AI agent"]
     Policy --> Quarantine["Quarantine / manual review"]
 ```
 
-The planned reference deployment uses separate `web`, `worker`, `db`, and `proxy` containers with distinct responsibilities and network access. An optional Hermes adapter may be added later, but it must not broaden the API's capabilities.
+The planned reference deployment uses separate `web`, `worker`, `db`, and `proxy` containers with distinct responsibilities and network access. An optional AI-agent adapter may be added later, but it must not broaden the API's capabilities.
 
 ## Planned scope
 
@@ -68,7 +68,7 @@ MailGate aims to provide:
 - authentication and anti-spam signal evaluation;
 - quarantine, review, categories, priorities, and deterministic rules;
 - an interchangeable OpenAI-compatible classification provider;
-- revocable, expiring, rate-limited read-only Hermes credentials;
+- revocable, expiring, rate-limited read-only AI-agent credentials;
 - audit records that avoid unnecessary sensitive content;
 - German and English user interfaces.
 
@@ -104,7 +104,7 @@ mailgate/
 2. Build the technical mail filter without AI: ingestion, authentication checks, sanitization, persistence, quarantine, and idempotency.
 3. Add schema-constrained classification and deterministic policies.
 4. Build the graphical setup and review interface.
-5. Add and test the minimal read-only Hermes integration.
+5. Add and test the minimal read-only AI-agent integration.
 6. Harden containers, secrets, backups, audit behavior, and adversarial tests before a public release.
 
 The detailed working plan is available in German in [docs/projektplan.md](docs/projektplan.md).

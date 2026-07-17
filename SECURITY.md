@@ -32,8 +32,8 @@ The project will acknowledge a valid private report, coordinate remediation and 
 Reports are especially important when they show a path to:
 
 - mailbox credentials or classification-provider secrets;
-- raw, quarantined, or unapproved message content through the Hermes interface;
-- any send, reply, move, delete, attachment-download, database, or mailbox operation from Hermes;
+- raw, quarantined, or unapproved message content through the AI-agent interface;
+- any send, reply, move, delete, attachment-download, database, or mailbox operation from the AI agent;
 - bypassing owner isolation;
 - executing content from messages or attachments;
 - accepting forged authentication results as trusted;

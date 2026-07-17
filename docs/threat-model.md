@@ -4,7 +4,7 @@ Status: initial Phase 0 baseline, 17 July 2026. This document must be revised as
 
 ## Security goal
 
-MailGate allows an owner's Hermes assistant to read selected, sanitized message information without giving Hermes authority over the mailbox or exposing unapproved mail. It assumes every message and every model-produced classification may be malicious.
+MailGate allows an owner's AI agent to read selected, sanitized message information without giving the agent authority over the mailbox or exposing unapproved mail. It assumes every message and every model-produced classification may be malicious.
 
 ## Protected assets
 
@@ -12,7 +12,7 @@ MailGate allows an owner's Hermes assistant to read selected, sanitized message 
 - raw and sanitized message content;
 - private forwarding addresses and owner identity data;
 - classification-provider credentials;
-- MailGate credentials issued to Hermes;
+- MailGate credentials issued to an AI agent;
 - rules, categories, review decisions, and audit records;
 - encryption and backup keys;
 - integrity of approval and quarantine state.
@@ -24,7 +24,7 @@ MailGate allows an owner's Hermes assistant to read selected, sanitized message 
 - forged authentication headers and contradictory routing information;
 - prompt-injection text in any message field or attachment metadata;
 - classifier responses, including malformed or adversarial structured output;
-- Hermes API requests, bearer credentials, and network identity;
+- AI-agent API requests, bearer credentials, and network identity;
 - configuration imports, restore data, and provider error responses.
 
 ## Trust boundaries
@@ -43,11 +43,11 @@ The policy engine permits only predefined state transitions. The classifier reco
 
 ### Database to web and API
 
-Administrative owner sessions and Hermes credentials are separate. A Hermes credential is hashed at rest, shown once, revocable, expiring, rate-limited, and limited to approved sanitized data. It does not authorize raw content, quarantine, configuration, or any write.
+Administrative owner sessions and AI-agent credentials are separate. An AI-agent credential is hashed at rest, shown once, revocable, expiring, rate-limited, and limited to approved sanitized data. It does not authorize raw content, quarantine, configuration, or any write.
 
-### MailGate API to Hermes
+### MailGate API to an AI agent
 
-There is no direct network path or shared credential from Hermes to IMAP, SMTP, or the database. Private networking and transport authentication protect the API. All access is audited without recording unnecessary message content or bearer tokens.
+There is no direct network path or shared credential from the AI agent to IMAP, SMTP, or the database. Private networking and transport authentication protect the API. All access is audited without recording unnecessary message content or bearer tokens.
 
 ## Mandatory fail-closed behavior
 
@@ -60,11 +60,11 @@ There is no direct network path or shared credential from Hermes to IMAP, SMTP, 
 | Classifier unavailable | Leave message unprocessed |
 | Classifier output invalid or unknown | Reject output and require review |
 | Database operation fails | Stop processing and record a content-minimal error |
-| Hermes scope, state, method, or rate check fails | Deny the request |
+| AI-agent scope, state, method, or rate check fails | Deny the request |
 
 ## Prohibited capabilities
 
-The Hermes-facing surface must never provide:
+The AI-agent-facing surface must never provide:
 
 - IMAP, SMTP, mailbox, database, Docker, shell, or filesystem credentials;
 - send, reply, forward, delete, move, mark, approve, or quarantine actions;
@@ -88,8 +88,8 @@ These are architectural constraints. Adding any such capability requires a new t
 
 - Parser, sanitizer, schema, policy, authentication-header, authorization, and isolation tests pass.
 - Adversarial prompt-injection cases cannot cause additional authority or state transitions.
-- Every non-GET method on the Hermes interface is rejected where no explicit read-only route exists.
-- A stolen, expired, revoked, or wrong-scope Hermes credential is denied.
+- Every non-GET method on the AI-agent interface is rejected where no explicit read-only route exists.
+- A stolen, expired, revoked, or wrong-scope AI-agent credential is denied.
 - Containers run without root and unnecessary Linux capabilities, mounts, and network routes.
 - Secrets and personal data scans cover repository history, build artifacts, fixtures, and logs.
 - Backup, restore, update, and complete local deletion are tested.
@@ -97,7 +97,7 @@ These are architectural constraints. Adding any such capability requires a new t
 
 ## Known residual risks
 
-SPF, DKIM, DMARC, and ARC establish limited transport and domain properties; they do not prove that content is truthful or safe. Sanitization and prompt-injection detection can fail. Approved summaries can still contain misleading information. The primary control is therefore least privilege: even a successful content attack must not grant Hermes mailbox actions or access to unapproved data.
+SPF, DKIM, DMARC, and ARC establish limited transport and domain properties; they do not prove that content is truthful or safe. Sanitization and prompt-injection detection can fail. Approved summaries can still contain misleading information. The primary control is therefore least privilege: even a successful content attack must not grant the AI agent mailbox actions or access to unapproved data.
 
 ## Out of scope for the initial version
 
