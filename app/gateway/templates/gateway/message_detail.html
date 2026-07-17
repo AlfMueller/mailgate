@@ -1,5 +1,6 @@
 {% extends "gateway/base.html" %}
 {% load i18n gateway_labels %}
+{% block title %}{% if item.subject %}{{ item.subject }}{% else %}{% translate "Message" %}{% endif %} · MailGate{% endblock %}
 {% block content %}
 <p><a href="{% url 'message-list' %}?state={{ item.state }}">← {% translate "Back" %}</a></p>
 {% translate "(no subject)" as no_subject %}
@@ -13,7 +14,8 @@
   <aside class="card">
     <h2>{% translate "Decision" %}</h2>
     <p class="risk-{{ item.risk }}">{% translate "Risk:" %} {% if item.risk == "low" %}{% translate "low" %}{% elif item.risk == "high" %}{% translate "high" %}{% else %}{% translate "medium" %}{% endif %}</p>
-    <p><strong>{% translate "Unverified provider header claims:" %}</strong> SPF {{ item.authentication.spf|default:"unknown"|auth_label }} · DKIM {{ item.authentication.dkim|default:"unknown"|auth_label }} · DMARC {{ item.authentication.dmarc|default:"unknown"|auth_label }} · ARC {{ item.authentication.arc|default:"unknown"|auth_label }}</p>
+    <p><strong>{% translate "Independent DKIM verification:" %}</strong> {{ item.authentication.independent.dkim.result|default:"unknown"|auth_label }}</p>
+    <p><strong>{% translate "Unverified provider header claims:" %}</strong> SPF {{ item.authentication.provider_claims.spf|default:"unknown"|auth_label }} · DKIM {{ item.authentication.provider_claims.dkim|default:"unknown"|auth_label }} · DMARC {{ item.authentication.provider_claims.dmarc|default:"unknown"|auth_label }} · ARC {{ item.authentication.provider_claims.arc|default:"unknown"|auth_label }}</p>
     <ul>{% for signal in item.signals %}<li>{{ signal|signal_label }}</li>{% empty %}<li>{% translate "No warning signals" %}</li>{% endfor %}</ul>
     {% if item.state == "quarantined" %}
     <form method="post" action="{% url 'message-decide' item.id %}">

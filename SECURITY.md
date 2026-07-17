@@ -6,9 +6,12 @@ MailGate is security-sensitive software and is currently a technical release can
 
 | Version | Supported |
 | --- | --- |
-| No releases yet | No |
+| `1.0.0rc1` | Security fixes during release-candidate evaluation |
+| `< 1.0.0rc1` | No |
 
-Do not use the current repository contents to protect a real mailbox.
+Until the final V1 gates pass, use only a dedicated isolated pilot mailbox with unique rotated
+credentials and an independently verified encrypted backup. Do not expose the owner UI publicly
+without the production HTTPS override.
 
 ## Reporting a vulnerability
 
@@ -40,4 +43,6 @@ Reports are especially important when they show a path to:
 - causing classifier output to directly perform an action;
 - leaking sensitive content through logs, telemetry, diagnostics, or error reports.
 
-The full baseline is documented in [docs/threat-model.md](docs/threat-model.md).
+The full baseline is documented in [docs/threat-model.md](docs/threat-model.md); container scan scope
+and the narrow upstream-image reachability decision are recorded in
+[docs/security-scan-policy.md](docs/security-scan-policy.md).

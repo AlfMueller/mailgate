@@ -1,0 +1,19 @@
+services:
+  proxy:
+    image: ${MAILGATE_IMAGE:?Set MAILGATE_IMAGE to the release image including its sha256 digest}
+    pull_policy: always
+  dkim-resolver:
+    image: ${MAILGATE_IMAGE:?Set MAILGATE_IMAGE to the release image including its sha256 digest}
+    pull_policy: always
+  api:
+    image: ${MAILGATE_IMAGE:?Set MAILGATE_IMAGE to the release image including its sha256 digest}
+    pull_policy: always
+  install-migrate:
+    image: ${MAILGATE_IMAGE:?Set MAILGATE_IMAGE to the release image including its sha256 digest}
+    pull_policy: always
+  web:
+    image: ${MAILGATE_IMAGE:?Set MAILGATE_IMAGE to the release image including its sha256 digest}
+    pull_policy: always
+  worker:
+    image: ${MAILGATE_IMAGE:?Set MAILGATE_IMAGE to the release image including its sha256 digest}
+    pull_policy: always

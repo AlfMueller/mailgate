@@ -1,5 +1,6 @@
 {% extends "gateway/base.html" %}
 {% load i18n gateway_labels %}
+{% block title %}{% translate "Parser/policy adversarial self-test" %} · MailGate{% endblock %}
 {% block content %}
 <h1>{% translate "Parser/policy adversarial self-test" %}</h1>
 <section class="card">
@@ -13,7 +14,8 @@
 <section class="card">
   <h2>{% translate "Results" %}</h2>
   <table>
-    <thead><tr><th>{% translate "Case" %}</th><th>{% translate "Result" %}</th><th>{% translate "Outcome" %}</th><th>{% translate "Risk" %}</th><th>{% translate "State" %}</th><th>{% translate "DMARC claim" %}</th><th>{% translate "Signals" %}</th></tr></thead>
+    <caption class="visually-hidden">{% translate "Results" %}</caption>
+    <thead><tr><th scope="col">{% translate "Case" %}</th><th scope="col">{% translate "Result" %}</th><th scope="col">{% translate "Outcome" %}</th><th scope="col">{% translate "Risk" %}</th><th scope="col">{% translate "State" %}</th><th scope="col">{% translate "DMARC claim" %}</th><th scope="col">{% translate "Signals" %}</th></tr></thead>
     <tbody>
       {% for result in results %}
       <tr>

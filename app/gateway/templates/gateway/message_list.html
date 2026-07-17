@@ -1,11 +1,13 @@
 {% extends "gateway/base.html" %}
 {% load i18n gateway_labels %}
+{% block title %}{% if state == "quarantined" %}{% translate "Messages for review" %}{% elif state == "approved" %}{% translate "Approved messages" %}{% else %}{% translate "Rejected messages" %}{% endif %} · MailGate{% endblock %}
 {% block content %}
-<h1>{% if state == "quarantined" %}{% translate "Messages for review" %}{% elif state == "approved" %}{% translate "Approved messages" %}{% else %}{% translate "Rejected messages" %}{% endif %}</h1>
-<p class="tabs"><a href="?state=quarantined">{% translate "Review" %}</a> <a href="?state=approved">{% translate "Approved" %}</a> <a href="?state=rejected">{% translate "Rejected" %}</a></p>
+<h1 id="message-list-title">{% if state == "quarantined" %}{% translate "Messages for review" %}{% elif state == "approved" %}{% translate "Approved messages" %}{% else %}{% translate "Rejected messages" %}{% endif %}</h1>
+<nav class="tabs" aria-labelledby="message-list-title"><a href="?state=quarantined"{% if state == "quarantined" %} aria-current="page"{% endif %}>{% translate "Review" %}</a> <a href="?state=approved"{% if state == "approved" %} aria-current="page"{% endif %}>{% translate "Approved" %}</a> <a href="?state=rejected"{% if state == "rejected" %} aria-current="page"{% endif %}>{% translate "Rejected" %}</a></nav>
 <section class="card">
   <table>
-    <thead><tr><th>{% translate "Subject" %}</th><th>{% translate "Sender" %}</th><th>{% translate "Risk" %}</th><th>{% translate "Category" %}</th></tr></thead>
+    <caption class="visually-hidden">{% if state == "quarantined" %}{% translate "Messages for review" %}{% elif state == "approved" %}{% translate "Approved messages" %}{% else %}{% translate "Rejected messages" %}{% endif %}</caption>
+    <thead><tr><th scope="col">{% translate "Subject" %}</th><th scope="col">{% translate "Sender" %}</th><th scope="col">{% translate "Risk" %}</th><th scope="col">{% translate "Category" %}</th></tr></thead>
     <tbody>
       {% translate "(no subject)" as no_subject %}
       {% for item in items %}

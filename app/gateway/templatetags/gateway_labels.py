@@ -8,6 +8,9 @@ register = template.Library()
 
 SIGNALS = {
     "authentication_failure": _("Authentication failed"),
+    "independent_dkim_failure": _("Independent DKIM verification failed"),
+    "independent_dkim_temperror": _("Independent DKIM verification temporarily unavailable"),
+    "independent_dkim_pass": _("Independent DKIM verification passed"),
     "dangerous_attachment": _("Dangerous attachment type"),
     "prompt_injection_suspected": _("Possible prompt injection"),
     "attachment_present": _("Attachment present"),

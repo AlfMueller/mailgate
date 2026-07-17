@@ -1,6 +1,6 @@
 # Architecture
 
-Status: technical release candidate; production release gates remain open.
+Status: V1.0.0 release candidate; independent installation and four-week pilot gates remain open.
 
 ## Components and authority
 
@@ -11,6 +11,7 @@ Status: technical release candidate; production release gates remain open.
 | `api` | GET-only approved-message agent API | API DB role; approved-only view and authorization function | master/setup secrets; base tables; owner routes; database writes except constrained authorization audit |
 | `worker` | read-only IMAP, bounded parsing and ingestion | worker DB role, credential master key, internal route to IMAP relay | direct external network; owner/session/token tables; approval updates; SMTP |
 | `imap-egress` | TLS ClientHello/SNI allowlist and TCP relay to one IMAPS host | one operator-configured DNS hostname; external route | secrets; database; generic proxying; destinations other than configured host:993 |
+| `dkim-resolver` | bounded DKIM-only TXT lookup over one operator-controlled HTTPS DNS endpoint | external DNS route, no application secrets | database; IMAP; arbitrary query types/names; query logging |
 | `install-migrate` | one-shot schema migrations | migration DB role | runtime services |
 | `install-db-bootstrap` | one-shot creation/rotation of fixed least-privilege roles | PostgreSQL admin secret | application runtime |
 | `install-db-permissions` | one-shot post-migration worker grants and permission self-test | PostgreSQL admin secret | application runtime |
@@ -31,7 +32,9 @@ authorization function. Startup permission tests fail the installation if those 
 4. The parser bounds raw bytes, MIME parts, text, links and attachments. It emits safe text and
    metadata; raw mail and attachment bytes are discarded.
 5. Explicitly configured provider `Authentication-Results` claims are recorded as untrusted signals.
-   They never cause automatic approval.
+   Separately, DKIM signatures are verified over the unchanged raw bytes through the secretless,
+   DKIM-name-only resolver. Provider claims never cause automatic approval; DNS/verification errors
+   fail closed.
 6. Deterministic rules quarantine every newly ingested message; the owner may approve the sanitized
    representation or reject it.
 7. Random UUIDs identify messages. The agent API accepts only revocable bearer tokens with fixed
@@ -55,5 +58,5 @@ explicitly configured.
 ## Remaining boundaries
 
 The exact unfulfilled requirements are tracked in [release-gates.md](release-gates.md). In particular,
-key rotation, backup/restore, independent DKIM, broader adversarial testing and the four-week pilot
+the independent installation acceptance and four-week pilot
 prevent a production claim.

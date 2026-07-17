@@ -13,7 +13,8 @@ The release-candidate implementation includes:
 - TLS-only read-only IMAP ingestion using read-only mailbox selection and `BODY.PEEK[]`;
 - idempotency by mailbox, `UIDVALIDITY`, and UID;
 - bounded MIME processing, safe HTML-to-text conversion, visible Unicode control characters, normalized link inventory, and attachment metadata without storing attachment bytes;
-- trusted-provider `Authentication-Results` handling for SPF, DKIM, DMARC, and ARC, with missing or untrusted provenance kept as `unknown`;
+- independent DKIM verification over unchanged raw bytes through a secretless, bounded DNS resolver,
+  kept separate from provider `Authentication-Results` claims for SPF, DKIM, DMARC, and ARC;
 - deterministic risk, category, priority, quarantine, and approval policy;
 - revocable, rate-limited, hash-at-rest API tokens with the fixed scope
   `messages:read:approved`; tokens expire by default, while an explicit lifetime of `0` creates a
@@ -22,23 +23,28 @@ The release-candidate implementation includes:
 - Docker Compose with PostgreSQL, separate owner-web, approved-only API and worker processes, Caddy, file-backed secrets, non-root read-only application containers, and an optional automatic-HTTPS production override;
 - a database-enforced approved-only API view/function and a dedicated API role that cannot read base, token, audit, mailbox or attachment tables;
 - destination-enforced IMAPS egress through an SNI-checking relay; the worker has no direct external network and one installation permits exactly one configured IMAP host on port 993;
-- synthetic unit, adversarial, UI authorization, API authorization, and IMAP command-boundary tests;
+- synthetic unit, adversarial, fuzz, browser/Axe, UI authorization, API authorization, IMAP
+  command-boundary, PostgreSQL privilege, backup/restore, and key-rotation tests;
 - an owner-only local prompt-injection self-test, including PDF-attachment containment, that
   performs no SMTP, IMAP, or message-store mutation and makes no claim to inspect PDFs or detect
   every possible injection;
 - a public, static “How MailGate works” page plus owner-only observed local status, and a
   GitHub-friendly translation workflow documented in [docs/translating.md](docs/translating.md).
 
-This is deliberately **not yet labelled production-ready**. The former API/database, worker-egress and stale-configuration blockers are implemented and continuously tested. Key rotation and restore drills, broader security automation, an independent installation, and the required four-week pilot remain open. See [release gates](docs/release-gates.md).
+This is deliberately **not yet labelled production-ready**. The technical V1 release-candidate gates
+are implemented and tested, including an encrypted restore drill and credential-key rotation. An
+independent 15-minute installation acceptance and the required four-week isolated pilot remain open.
+See [release gates](docs/release-gates.md) and [release evidence](docs/release-evidence.md).
 
 ## Quick start for local evaluation
 
-Prerequisites: Docker Engine with Docker Compose and Python 3.12 or newer.
+Prerequisites: Docker Engine with Docker Compose and Python 3.13 or 3.14 for host-side tools.
 
 ```text
 python scripts/create_local_secrets.py
 copy .env.example .env
 # Edit MAILGATE_IMAP_ALLOWED_HOST in .env before adding a mailbox.
+python scripts/doctor.py
 docker compose up --build -d
 ```
 
@@ -46,6 +52,9 @@ Open `http://127.0.0.1:8080/setup/`, copy the bootstrap value from
 `.local/secrets/setup_token`, create the sole installation owner, then connect a dedicated
 test mailbox. Never reuse mailbox credentials pasted into chat, logs, issues, or screenshots;
 rotate them first.
+
+The [operations runbook](docs/operations.md) covers health checks, encrypted backup/restore,
+credential rotation, retention, owner export, upgrades, and rollback.
 
 Stop without deleting data:
 

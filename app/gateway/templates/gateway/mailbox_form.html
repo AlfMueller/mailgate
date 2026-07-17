@@ -1,4 +1,4 @@
-{% extends "gateway/base.html" %}{% load i18n %}{% block content %}
+{% extends "gateway/base.html" %}{% load i18n %}{% block title %}{% if editing %}{% translate "Mailbox settings" %}{% else %}{% translate "Connect an IMAP mailbox" %}{% endif %} · MailGate{% endblock %}{% block content %}
 <section class="card narrow">
   <p class="eyebrow">{% if editing %}{% translate "Mailbox settings" %}{% else %}{% translate "Step 2 of 2" %}{% endif %}</p>
   <h1>{% if editing %}{% blocktranslate with name=mailbox.name %}Edit {{ name }}{% endblocktranslate %}{% else %}{% translate "Connect an IMAP mailbox" %}{% endif %}</h1>

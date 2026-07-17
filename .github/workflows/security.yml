@@ -1,0 +1,100 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_call:
+  schedule:
+    - cron: "17 3 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  codeql:
+    name: CodeQL (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [python, actions]
+    permissions:
+      contents: read
+      security-events: write
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: github/codeql-action/init@f52b05f4acaaa234e44466e66d29050e135ea9ef # v4.36.0
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended
+      - uses: github/codeql-action/analyze@f52b05f4acaaa234e44466e66d29050e135ea9ef # v4.36.0
+
+  history-secrets:
+    name: Secret and history scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          fetch-depth: 0
+      - name: Scan the complete Git history
+        run: |
+          docker run --rm --volume "$PWD:/repo" \
+            ghcr.io/gitleaks/gitleaks@sha256:cdbb7c955abce02001a9f6c9f602fb195b7fadc1e812065883f695d1eeaba854 \
+            git /repo --no-banner --redact=100 --log-opts="--all"
+
+  container:
+    name: Container CVE and SBOM
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - name: Build the release image
+        run: docker build --tag mailgate-security-scan:${{ github.sha }} .
+      - name: Verify the embedded proxy runs non-root with one capability
+        run: |
+          docker run --detach --name mailgate-caddy-bind-test \
+            --user 10001:10001 --cap-drop ALL --cap-add NET_BIND_SERVICE \
+            --security-opt no-new-privileges:true --read-only \
+            --tmpfs /tmp:rw,noexec,nosuid,size=8m,uid=10001,gid=10001 \
+            mailgate-security-scan:${{ github.sha }} \
+            caddy respond --listen :80 --status 200
+          trap 'docker rm --force mailgate-caddy-bind-test >/dev/null 2>&1 || true' EXIT
+          docker exec mailgate-caddy-bind-test python -c \
+            "import urllib.request; assert urllib.request.urlopen('http://127.0.0.1:80',timeout=3).status == 200"
+      - name: Reject fixable high or critical vulnerabilities and secrets
+        run: |
+          docker run --rm --volume /var/run/docker.sock:/var/run/docker.sock \
+            aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
+            image --skip-version-check --scanners vuln,secret --severity HIGH,CRITICAL \
+            --ignore-unfixed --exit-code 1 mailgate-security-scan:${{ github.sha }}
+      - name: Scan pinned infrastructure OS packages
+        run: |
+          docker compose config --images | sort -u | while read -r image; do
+            case "$image" in
+              mailgate-*) continue ;;
+            esac
+            docker run --rm --volume /var/run/docker.sock:/var/run/docker.sock \
+              aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
+              image --skip-version-check --scanners vuln --pkg-types os --severity HIGH,CRITICAL \
+              --ignore-unfixed --exit-code 1 "$image"
+          done
+      - name: Generate SPDX and CycloneDX SBOMs
+        run: |
+          docker run --rm --volume /var/run/docker.sock:/var/run/docker.sock \
+            --volume "$PWD:/output" \
+            aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
+            image --skip-version-check --format spdx-json --output /output/mailgate.spdx.json \
+            mailgate-security-scan:${{ github.sha }}
+          docker run --rm --volume /var/run/docker.sock:/var/run/docker.sock \
+            --volume "$PWD:/output" \
+            aquasec/trivy@sha256:be1190afcb28352bfddc4ddeb71470835d16462af68d310f9f4bca710961a41e \
+            image --skip-version-check --format cyclonedx --output /output/mailgate.cdx.json \
+            mailgate-security-scan:${{ github.sha }}
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: mailgate-sbom-${{ github.sha }}
+          path: |
+            mailgate.spdx.json
+            mailgate.cdx.json
+          if-no-files-found: error
+          retention-days: 14

@@ -1,0 +1,18 @@
+services:
+  test-imap-upstream:
+    command:
+      - python
+      - /integration/synthetic_imap_server.py
+      - --certificate-path
+      - /e2e-ca/synthetic-imap-cert.pem
+    volumes:
+      - ${MAILGATE_E2E_CA_DIR:?set MAILGATE_E2E_CA_DIR}:/e2e-ca
+
+  worker:
+    depends_on:
+      test-imap-upstream:
+        condition: service_healthy
+    environment:
+      SSL_CERT_FILE: /e2e-ca/synthetic-imap-cert.pem
+    volumes:
+      - ${MAILGATE_E2E_CA_DIR:?set MAILGATE_E2E_CA_DIR}:/e2e-ca:ro

@@ -2,7 +2,14 @@
 
 Stand: 17. Juli 2026
 
-Status: Arbeitsgrundlage für Produkt, GitHub-Repository, Website-Artikel und YouTube-Video
+Status: Produktvision und Kommunikationsgrundlage. Für den technischen V1-Umfang sind
+`docs/decisions/0002-v1-security-boundaries.md` und `docs/release-gates.md` verbindlich.
+
+V1 ist bewusst kleiner als die langfristige Vision in diesem Dokument: MailGate sendet keine
+E-Mails, enthält keinen externen Modell- oder MCP-Aufruf, lädt keine Anhangsinhalte herunter und
+bewertet SPF/DMARC/ARC aus IMAP-Nachrichten nur als Provider-Behauptungen. DKIM wird zusätzlich
+unabhängig über unveränderte Rohbytes und begrenzte DNS-TXT-Abfragen geprüft. Klassifizierungs- und
+Adapterideen bleiben spätere, gesondert zu bedrohungsmodellierende Ausbaustufen.
 
 Projektname: **MailGate**
 
@@ -54,15 +61,14 @@ technische Trennung:
 > begrenzten Schlüssel, mit dem ausschließlich dein KI-Agent freigegebene
 > Nachrichten lesen kann.
 
-Der erste Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
+Der technische V1-Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
 
-1. `docker compose up -d`
+1. lokalen Doctor ausführen und `docker compose up -d` starten
 2. Einrichtungsassistent im Browser öffnen
-3. eigenes Postfach verbinden und Verbindung testen
-4. Klassifizierungsanbieter konfigurieren
-5. Testnachricht prüfen lassen
-6. KI-Agenten-Schlüssel erzeugen
-7. erste freigegebene Nachricht im KI-Agenten sehen
+3. eigenes Postfach verbinden und die TLS-/Read-only-Verbindung testen
+4. Testnachricht synchronisieren, prüfen und freigeben
+5. zeitlich begrenzten Agenten-Schlüssel erzeugen
+6. erste freigegebene, bereinigte Nachricht über die private Read-only-API lesen
 
 ## 4. Zielgruppe
 
@@ -73,9 +79,12 @@ Der erste Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
 - kleine Projekte, Vereine oder Einzelunternehmen mit überschaubarem
   Mailaufkommen
 
-## 5. Umfang der ersten Version
+## 5. Langfristiges Zielbild nach der technischen V1
 
-### Enthalten
+Die folgenden Punkte beschreiben geplante Ausbaustufen. Sie sind nicht Bestandteil der in ADR 0002
+festgelegten technischen V1, sofern sie dort ausdrücklich ausgeschlossen werden.
+
+### Geplant
 
 - eine selbst gehostete Installation pro Besitzer
 - mehrere eigene IMAP-Postfächer pro Installation
@@ -299,7 +308,7 @@ Ein Schlüssel allein identifiziert nur seinen Besitzer. Deshalb gilt:
 Ein optionaler KI-Agenten- oder MCP-Adapter bildet genau diese lesenden
 Endpunkte ab und stellt keine weiteren Mail-Werkzeuge bereit.
 
-## 10. Technische Architektur
+## 10. Langfristige Zielarchitektur
 
 ```mermaid
 flowchart LR
@@ -341,7 +350,7 @@ als getrennte Prozesse und mit unterschiedlichen Netzwerkrechten.
 
 ## 11. Grafische Oberfläche
 
-### Einrichtungsassistent
+### Langfristiger Einrichtungsassistent
 
 1. Besitzerkonto erstellen
 2. Postfachanbieter auswählen
@@ -420,7 +429,7 @@ MailGate arbeitet im Zweifel defensiv:
 
 ### Pilotbetrieb
 
-`kontakt@alf.fun` dient als erstes reales, aber isoliertes Testpostfach. Vor
+Ein dediziertes, isoliertes Pilotpostfach dient als erster realer Test. Vor
 öffentlicher Freigabe werden mindestens vier Wochen lang Fehlklassifizierungen,
 Quarantäneentscheidungen und Systemausfälle protokolliert und ausgewertet.
 
@@ -498,7 +507,7 @@ Mailaktion ausführen und keine Rohdaten abrufen.
 - Secret- und Backup-Konzept
 - Rate-Limits und Auditierung
 - LLMail-Inject-Tests
-- vierwöchiger Pilot mit `kontakt@alf.fun`
+- vierwöchiger Pilot mit einem dedizierten, isolierten Pilotpostfach
 - Security- und Datenschutzdokumentation
 
 **Abnahme:** Kritische Tests sind bestanden; bekannte Restrisiken sind

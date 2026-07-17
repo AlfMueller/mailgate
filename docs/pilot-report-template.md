@@ -1,0 +1,23 @@
+# MailGate pilot report (content-free template)
+
+- Release candidate and immutable image digest:
+- UTC start/end (at least 28 complete days):
+- Independent installation report reference:
+- Backup/restore drill dates:
+- Key-rotation drill date:
+- Total received/ingested/duplicate:
+- Owner decisions by gold label:
+- Risk/category/prompt-signal confusion matrix:
+- Precision/recall and uncertainty notes:
+- Ingestion latency p50/p95/max:
+- Review time p50/p95 and maximum backlog:
+- Worker gaps/restarts/recovery time:
+- API success/401/404/429 counts:
+- Unapproved API exposures (must be 0):
+- Remote mailbox mutations (must be 0):
+- Stored/returned attachment bytes (must be 0):
+- Secret or personal-data incidents (must be 0):
+- Other incidents and clock restarts:
+- Residual risks accepted for V1:
+- Maintainer sign-off/date:
+- Independent reviewer sign-off/date:

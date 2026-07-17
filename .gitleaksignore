@@ -1,0 +1,3 @@
+# Deterministic, public Fernet fixture used only while collecting static assets and checking migrations.
+3c495ed798cc58769c3798080e026a25175de18a:.github/workflows/ci.yml:generic-api-key:53
+3c495ed798cc58769c3798080e026a25175de18a:Dockerfile:generic-api-key:29

@@ -1,4 +1,4 @@
-{% extends "gateway/base.html" %}{% load i18n gateway_labels %}{% block content %}
+{% extends "gateway/base.html" %}{% load i18n gateway_labels %}{% block title %}{% translate "Your private mail gate" %} · MailGate{% endblock %}{% block content %}
 <h1>{% translate "Your private mail gate" %}</h1>
 <div class="metrics"><a class="metric" href="{% url 'message-list' %}?state=quarantined"><strong>{{ counts.quarantined }}</strong>{% translate "Review" %}</a><a class="metric" href="{% url 'message-list' %}?state=approved"><strong>{{ counts.approved }}</strong>{% translate "Approved" %}</a><a class="metric" href="{% url 'message-list' %}?state=rejected"><strong>{{ counts.rejected }}</strong>{% translate "Rejected" %}</a></div>
 <section class="card"><h2>{% translate "Mailboxes" %}</h2>

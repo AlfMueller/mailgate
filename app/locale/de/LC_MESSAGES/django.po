@@ -10,6 +10,9 @@ msgstr ""
 msgid "Review"
 msgstr "Prüfen"
 
+msgid "Message"
+msgstr "Nachricht"
+
 msgid "Add mailbox"
 msgstr "Postfach hinzufügen"
 
@@ -28,8 +31,11 @@ msgstr "Funktionsweise"
 msgid "Log out"
 msgstr "Abmelden"
 
-msgid "Development preview — not production-ready"
-msgstr "Entwicklungsvorschau — nicht produktionsbereit"
+msgid "Skip to main content"
+msgstr "Zum Hauptinhalt springen"
+
+msgid "Technical release candidate — not production-ready"
+msgstr "Technischer Release Candidate — nicht produktionsbereit"
 
 msgid "No telemetry"
 msgstr "Keine Telemetrie"
@@ -388,8 +394,8 @@ msgstr "Ein aktueller Zeitstempel beweist nur eine abgeschlossene Prüfung; er i
 msgid "Known limits"
 msgstr "Bekannte Grenzen"
 
-msgid "This build is a development preview, not a production release. Prompt-injection detection can miss attacks, PDFs are not inspected, and additional isolation, backup, key-rotation, egress, and release-security gates remain open."
-msgstr "Diese Version ist eine Entwicklungsvorschau und keine Produktionsfreigabe. Die Prompt-Injection-Erkennung kann Angriffe übersehen, PDFs werden nicht geprüft und weitere Anforderungen zu Isolation, Backup, Schlüsselrotation, Netzwerkzugriff und Release-Sicherheit sind offen."
+msgid "This build is a release candidate, not the final production release. Prompt-injection detection can miss attacks, PDFs are not inspected, and the independent installation and four-week pilot gates remain open."
+msgstr "Diese Version ist ein Release Candidate und noch keine endgültige Produktionsfreigabe. Die Prompt-Injection-Erkennung kann Angriffe übersehen, PDFs werden nicht geprüft und die unabhängige Installation sowie der vierwöchige Pilotbetrieb stehen noch aus."
 
 msgid "Source code and release gates on GitHub"
 msgstr "Quellcode und Freigabekriterien auf GitHub"
@@ -756,3 +762,21 @@ msgstr "Diese Installation erlaubt nur den IMAP-Host {host}."
 
 msgid "Mailbox connection and its local MailGate data were deleted. The remote mailbox was not changed."
 msgstr "Die Postfachverbindung und ihre lokalen MailGate-Daten wurden gelöscht. Das entfernte Postfach wurde nicht verändert."
+
+msgid "Independent DKIM verification failed"
+msgstr "Unabhängige DKIM-Prüfung fehlgeschlagen"
+
+msgid "Independent DKIM verification passed"
+msgstr "Unabhängige DKIM-Prüfung bestanden"
+
+msgid "Independent DKIM verification temporarily unavailable"
+msgstr "Unabhängige DKIM-Prüfung vorübergehend nicht verfügbar"
+
+msgid "Independent DKIM verification:"
+msgstr "Unabhängige DKIM-Prüfung:"
+
+msgid "Mail provider"
+msgstr "E-Mail-Anbieter"
+
+msgid "This provider preset is not enabled by the installation allowlist."
+msgstr "Dieses Anbieterprofil ist in der Installationsfreigabeliste nicht aktiviert."

@@ -27,11 +27,13 @@ def create_mailbox(database, name: str) -> int:
         cursor.execute(
             """
             INSERT INTO gateway_mailbox
-              (name, host, port, username, password_encrypted, trusted_authserv_ids,
-               enabled, last_uid, last_error_code, config_version, created_at, updated_at)
+              (name, provider_key, preset_version, host, port, username,
+               password_encrypted, trusted_authserv_ids, enabled, last_uid,
+               last_error_code, config_version, created_at, updated_at)
             VALUES
-              (%s, 'imap.example.test', 993, 'owner@example.test', decode('00','hex'),
-               '', true, 0, '', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+              (%s, 'generic_imaps', 1, 'imap.example.test', 993,
+               'owner@example.test', decode('00','hex'), '', true, 0, '', 1,
+               CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
             RETURNING id
             """,
             [name],

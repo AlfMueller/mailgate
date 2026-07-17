@@ -1,10 +1,12 @@
 {% extends "gateway/base.html" %}
 {% load i18n gateway_labels %}
+{% block title %}{% translate "Audit trail" %} · MailGate{% endblock %}
 {% block content %}
 <h1>{% translate "Audit trail" %}</h1>
 <section class="card">
   <table>
-    <thead><tr><th>{% translate "Time" %}</th><th>{% translate "Actor" %}</th><th>{% translate "Action" %}</th><th>{% translate "Object" %}</th></tr></thead>
+    <caption class="visually-hidden">{% translate "Audit trail" %}</caption>
+    <thead><tr><th scope="col">{% translate "Time" %}</th><th scope="col">{% translate "Actor" %}</th><th scope="col">{% translate "Action" %}</th><th scope="col">{% translate "Object" %}</th></tr></thead>
     <tbody>
       {% for event in events %}
       <tr><td>{{ event.created_at }}</td><td>{{ event.actor }}</td><td>{{ event.action|audit_action_label }}</td><td>{{ event.object_type|object_type_label }} {{ event.object_id }}</td></tr>

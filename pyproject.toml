@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mailgate"
-version = "0.1.0.dev0"
+version = "1.0.0rc1"
 description = "Self-hosted email security gateway with a restricted read-only AI-agent API"
 readme = "README.md"
 requires-python = ">=3.13,<3.15"
@@ -14,7 +14,7 @@ authors = [
   { name = "Alf Müller" },
 ]
 classifiers = [
-  "Development Status :: 2 - Pre-Alpha",
+  "Development Status :: 4 - Beta",
   "Framework :: Django :: 5.2",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.13",
@@ -23,6 +23,8 @@ classifiers = [
 dependencies = [
   "Django==5.2.16",
   "cryptography==49.0.0",
+  "dkimpy==1.1.8",
+  "dnspython==2.8.0",
   "gunicorn==26.0.0",
   "psycopg[binary]==3.3.4",
   "whitenoise==6.12.0",
