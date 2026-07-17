@@ -1,10 +1,14 @@
-# Web Application
+# Web application
 
-The first implementation foundation lives here:
+`mailgate/` contains fail-closed Django configuration, health endpoints and response hardening.
+`gateway/` contains encrypted mailbox configuration, message/audit/token models, the owner UI,
+bounded mail processing and the GET-only approved-message API. The owner UI and API use separate
+settings, URL configurations, processes, secrets and PostgreSQL roles.
 
-- `manage.py` provides Django management commands;
-- `mailgate/settings.py` reads explicit, file-backed secrets and database settings;
-- `mailgate/health.py` exposes content-minimal liveness and readiness endpoints;
-- `mailgate/middleware.py` applies restrictive response security headers.
-
-The web process has no IMAP or SMTP code and receives no mailbox credentials. The Compose deployment attaches it only to internal application and database networks. A separate, unprivileged Caddy proxy publishes the current HTTP endpoint on loopback.
+The web container has no worker egress network and no SMTP implementation. It receives the master
+key so the owner can store mailbox credentials, while the password is never rendered again. The
+owner can rotate a stored password without resetting the IMAP identity or UID cursor. Host, port,
+and username remain immutable after ingestion to keep historical messages bound to one source.
+The local adversarial self-test uses fixed synthetic fixtures and performs no network or message
+store mutation. The API role can read only an approved-message security-barrier view and use one
+constrained authorization function; it cannot read application base tables.

@@ -1,9 +1,14 @@
-# Mail Worker
+# Mail worker
 
-The first worker foundation verifies database readiness and provides a signal-aware process shell for later Phase 1 ingestion work.
+The worker periodically reads enabled mailboxes using certificate-verified IMAPS. It requests a
+read-only `INBOX` selection and fetches with `BODY.PEEK[]`; it has no SMTP implementation and
+never stores, moves, flags, or deletes provider mail.
 
-It deliberately does **not** connect to IMAP, classify messages, or mutate mailbox state yet. No mailbox or model-provider credentials are present in the Compose deployment.
+Messages are bounded, parsed and reduced to safe text, normalized links and attachment metadata.
+Provider authentication claims are recorded but never auto-approve a message. Failures are logged
+only by mailbox ID and stable error code. The database role cannot access owner accounts, sessions,
+or API tokens and cannot update message approval state.
 
-The worker must not expose mailbox credentials to classifiers or an AI agent and must fail closed when processing is incomplete or invalid.
-
-The worker is the only application process attached to the `worker_egress` network. The web process remains isolated from external mail services.
+The worker has only internal database and IMAP-relay networks. It cannot connect directly to the
+internet. The hardened `imap-egress` relay accepts end-to-end TLS only for the installation's exact
+operator-approved hostname and forwards that traffic only to port 993.

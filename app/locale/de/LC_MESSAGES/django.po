@@ -1,0 +1,782 @@
+# MailGate German translation
+# SPDX-License-Identifier: AGPL-3.0-only
+msgid ""
+msgstr ""
+"Project-Id-Version: MailGate 0.1\n"
+"Language: de\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "Review"
+msgstr "Prüfen"
+
+msgid "Message"
+msgstr "Nachricht"
+
+msgid "Add mailbox"
+msgstr "Postfach hinzufügen"
+
+msgid "Adversarial test"
+msgstr "Angriffstest"
+
+msgid "API tokens"
+msgstr "API-Token"
+
+msgid "Audit"
+msgstr "Protokoll"
+
+msgid "How it works"
+msgstr "Funktionsweise"
+
+msgid "Log out"
+msgstr "Abmelden"
+
+msgid "Skip to main content"
+msgstr "Zum Hauptinhalt springen"
+
+msgid "Technical release candidate — not production-ready"
+msgstr "Technischer Release Candidate — nicht produktionsbereit"
+
+msgid "No telemetry"
+msgstr "Keine Telemetrie"
+
+msgid "Language"
+msgstr "Sprache"
+
+msgid "Change"
+msgstr "Ändern"
+
+msgid "Your private mail gate"
+msgstr "Ihr privates E-Mail-Sicherheitstor"
+
+msgid "Approved"
+msgstr "Freigegeben"
+
+msgid "Rejected"
+msgstr "Abgelehnt"
+
+msgid "Mailboxes"
+msgstr "Postfächer"
+
+msgid "disabled"
+msgstr "deaktiviert"
+
+msgid "ready"
+msgstr "bereit"
+
+msgid "pending first read-only test"
+msgstr "wartet auf ersten Nur-Lese-Test"
+
+msgid "Edit"
+msgstr "Bearbeiten"
+
+msgid "Delete"
+msgstr "Löschen"
+
+msgid "No mailbox configured."
+msgstr "Kein Postfach eingerichtet."
+
+msgid "Connect one read-only."
+msgstr "Postfach nur lesend verbinden."
+
+msgid "How MailGate protects the mailbox"
+msgstr "Wie MailGate das Postfach schützt"
+
+msgid "See the complete read-only pipeline, stored data, attachment policy, known limits, and observed local status."
+msgstr "Sehen Sie den vollständigen Nur-Lese-Ablauf, gespeicherte Daten, die Anhangsrichtlinie, bekannte Grenzen und den beobachteten lokalen Status."
+
+msgid "How it works and status"
+msgstr "Funktionsweise und Status"
+
+msgid "Parser/policy adversarial self-test"
+msgstr "Angriffstest für Parser und Richtlinien"
+
+msgid "Run fixed local attack fixtures and a benign control without sending email or changing the mailbox."
+msgstr "Feste lokale Angriffsfälle und eine harmlose Kontrolle ausführen, ohne E-Mails zu senden oder das Postfach zu verändern."
+
+msgid "Open self-test"
+msgstr "Selbsttest öffnen"
+
+msgid "Recent messages"
+msgstr "Neueste Nachrichten"
+
+msgid "quarantined"
+msgstr "in Quarantäne"
+
+msgid "approved"
+msgstr "freigegeben"
+
+msgid "rejected"
+msgstr "abgelehnt"
+
+msgid "low"
+msgstr "niedrig"
+
+msgid "medium"
+msgstr "mittel"
+
+msgid "high"
+msgstr "hoch"
+
+msgid "No messages processed yet."
+msgstr "Noch keine Nachrichten verarbeitet."
+
+msgid "Mailbox settings"
+msgstr "Postfacheinstellungen"
+
+msgid "Step 2 of 2"
+msgstr "Schritt 2 von 2"
+
+msgid "Edit %(name)s"
+msgstr "%(name)s bearbeiten"
+
+msgid "Connect an IMAP mailbox"
+msgstr "IMAP-Postfach verbinden"
+
+msgid "MailGate uses TLS and read-only IMAP commands. It never sends, deletes, moves, or marks mail."
+msgstr "MailGate verwendet TLS und ausschließlich lesende IMAP-Befehle. Es sendet, löscht, verschiebt oder markiert niemals E-Mails."
+
+msgid "The stored password is never displayed. Leave “New password” blank to keep it."
+msgstr "Das gespeicherte Passwort wird niemals angezeigt. Lassen Sie „Neues Passwort“ leer, um es beizubehalten."
+
+msgid "Save changes"
+msgstr "Änderungen speichern"
+
+msgid "Save mailbox"
+msgstr "Postfach speichern"
+
+msgid "Delete this mailbox connection"
+msgstr "Diese Postfachverbindung löschen"
+
+msgid "Delete mailbox"
+msgstr "Postfach löschen"
+
+msgid "Local data deletion"
+msgstr "Lokale Datenlöschung"
+
+msgid "Delete %(name)s?"
+msgstr "%(name)s löschen?"
+
+msgid "This removes the mailbox connection and all of its processed messages and attachment metadata from the active MailGate database."
+msgstr "Dadurch werden die Postfachverbindung sowie alle verarbeiteten Nachrichten und Anhangsmetadaten aus der aktiven MailGate-Datenbank entfernt."
+
+msgid "MailGate will not delete, move, mark, or otherwise change any email on the remote mailbox."
+msgstr "MailGate löscht, verschiebt, markiert oder verändert keine E-Mail im entfernten Postfach."
+
+msgid "Backups and underlying database storage may retain data until their own retention period expires."
+msgstr "Backups und der zugrunde liegende Datenbankspeicher können Daten bis zum Ablauf ihrer eigenen Aufbewahrungsfrist enthalten."
+
+msgid "Delete local mailbox data"
+msgstr "Lokale Postfachdaten löschen"
+
+msgid "Cancel"
+msgstr "Abbrechen"
+
+msgid "Read-only API tokens"
+msgstr "Nur-Lese-API-Token"
+
+msgid "Copy this token now. It will not be shown again."
+msgstr "Kopieren Sie dieses Token jetzt. Es wird nicht erneut angezeigt."
+
+msgid "Issue token"
+msgstr "Token erstellen"
+
+msgid "Fixed scope:"
+msgstr "Fester Berechtigungsumfang:"
+
+msgid "Security note:"
+msgstr "Sicherheitshinweis:"
+
+msgid "A token with duration 0 never expires. Prefer a limited lifetime and revoke unused tokens."
+msgstr "Ein Token mit Laufzeit 0 läuft nie ab. Bevorzugen Sie eine begrenzte Laufzeit und widerrufen Sie ungenutzte Token."
+
+msgid "Existing"
+msgstr "Vorhandene Token"
+
+msgid "expires %(date)s"
+msgstr "läuft ab am %(date)s"
+
+msgid "never expires"
+msgstr "läuft nie ab"
+
+msgid "revoked"
+msgstr "widerrufen"
+
+msgid "Revoke"
+msgstr "Widerrufen"
+
+msgid "No tokens."
+msgstr "Keine Token vorhanden."
+
+msgid "Safe local simulation"
+msgstr "Sichere lokale Simulation"
+
+msgid "This test does not send email, connect to IMAP, change the mailbox cursor, or create message records. Fixed synthetic attack messages, a benign control, and a PDF-containment case pass through the worker parser and policy."
+msgstr "Dieser Test sendet keine E-Mail, verbindet sich nicht mit IMAP, ändert den Postfachzeiger nicht und erstellt keine Nachrichtendatensätze. Feste synthetische Angriffsnachrichten, eine harmlose Kontrolle und ein PDF-Abschirmungsfall durchlaufen Parser und Richtlinien des Workers."
+
+msgid "The selected mailbox supplies only its trusted provider-claim profile. If none is configured, the forged-claim case uses a reserved synthetic ID. Credentials, host, messages, and enabled state are not used."
+msgstr "Das ausgewählte Postfach liefert nur sein Profil vertrauenswürdiger Provider-Angaben. Ist keines eingerichtet, verwendet der Fälschungsfall eine reservierte synthetische ID. Zugangsdaten, Host, Nachrichten und Aktivierungsstatus werden nicht verwendet."
+
+msgid "Passing proves only these fixed regression cases. It cannot prove that every prompt injection is detected. PDF content is contained but not inspected."
+msgstr "Ein bestandener Test belegt nur diese festen Regressionsfälle. Er kann nicht beweisen, dass jede Prompt Injection erkannt wird. PDF-Inhalte werden abgeschirmt, aber nicht geprüft."
+
+msgid "Run self-test"
+msgstr "Selbsttest ausführen"
+
+msgid "Configure a mailbox before running the suite."
+msgstr "Richten Sie vor dem Test ein Postfach ein."
+
+msgid "Results"
+msgstr "Ergebnisse"
+
+msgid "Case"
+msgstr "Fall"
+
+msgid "Result"
+msgstr "Ergebnis"
+
+msgid "Outcome"
+msgstr "Schutzwirkung"
+
+msgid "Risk"
+msgstr "Risiko"
+
+msgid "State"
+msgstr "Status"
+
+msgid "DMARC claim"
+msgstr "DMARC-Angabe"
+
+msgid "Signals"
+msgstr "Signale"
+
+msgid "detected"
+msgstr "erkannt"
+
+msgid "contained, not inspected"
+msgstr "abgeschirmt, nicht geprüft"
+
+msgid "benign control"
+msgstr "harmlose Kontrolle"
+
+msgid "Instruction override"
+msgstr "Überschreiben von Anweisungen"
+
+msgid "Direct request to discard higher-priority instructions."
+msgstr "Direkte Aufforderung, höherrangige Anweisungen zu verwerfen."
+
+msgid "Tool invocation"
+msgstr "Werkzeugaufruf"
+
+msgid "Attempts to make an assistant execute a command or use a tool."
+msgstr "Versuch, den Assistenten zur Ausführung eines Befehls oder Werkzeugs zu bewegen."
+
+msgid "HTML-hidden instruction"
+msgstr "In HTML versteckte Anweisung"
+
+msgid "Places an instruction in HTML that may be visually unobtrusive."
+msgstr "Platziert eine Anweisung in optisch unauffälligem HTML."
+
+msgid "Forged authentication claim"
+msgstr "Gefälschte Authentifizierungsangabe"
+
+msgid "Combines injection text with a forged provider authentication result."
+msgstr "Kombiniert Injection-Text mit einem gefälschten Authentifizierungsergebnis des Providers."
+
+msgid "Benign control"
+msgstr "Harmlose Kontrolle"
+
+msgid "Checks that ordinary mail is not labelled as prompt injection."
+msgstr "Prüft, dass eine normale E-Mail nicht als Prompt Injection markiert wird."
+
+msgid "PDF attachment containment"
+msgstr "Abschirmung eines PDF-Anhangs"
+
+msgid "Confirms that PDF bytes stay out of parsed safe text while metadata is inventoried."
+msgstr "Bestätigt, dass PDF-Bytes nicht in den bereinigten Text gelangen, während Metadaten inventarisiert werden."
+
+msgid "How MailGate works"
+msgstr "So funktioniert MailGate"
+
+msgid "Transparent by design"
+msgstr "Transparenz als Grundprinzip"
+
+msgid "The safety pipeline"
+msgstr "Der Sicherheitsablauf"
+
+msgid "Read only"
+msgstr "Nur lesen"
+
+msgid "The worker connects with certificate-verified IMAPS, opens INBOX read-only, and fetches with BODY.PEEK. It has no SMTP implementation."
+msgstr "Der Worker verbindet sich per zertifikatsgeprüftem IMAPS, öffnet den Posteingang schreibgeschützt und liest mit BODY.PEEK. Er besitzt keine SMTP-Implementierung."
+
+msgid "Bounded processing"
+msgstr "Begrenzte Verarbeitung"
+
+msgid "MIME and HTML are parsed with size and part limits. Active HTML, remote images, and raw message bytes are not exposed."
+msgstr "MIME und HTML werden mit Größen- und Teilelimits verarbeitet. Aktives HTML, externe Bilder und rohe Nachrichtendaten werden nicht zugänglich gemacht."
+
+msgid "Signals, not trust"
+msgstr "Signale statt Vertrauen"
+
+msgid "SPF, DKIM, DMARC, and ARC provider headers are treated as unverified claims and never approve a message automatically."
+msgstr "Provider-Header zu SPF, DKIM, DMARC und ARC gelten als ungeprüfte Angaben und geben Nachrichten niemals automatisch frei."
+
+msgid "Owner decision"
+msgstr "Entscheidung des Besitzers"
+
+msgid "Every new message is quarantined. Only the owner can approve the sanitized representation."
+msgstr "Jede neue Nachricht kommt in Quarantäne. Nur der Besitzer kann die bereinigte Darstellung freigeben."
+
+msgid "Restricted agent API"
+msgstr "Begrenzte Assistenten-API"
+
+msgid "The API is GET-only and returns approved sanitized fields. It exposes no IMAP, SMTP, delete, move, reply, raw-source, or attachment-download capability."
+msgstr "Die API erlaubt nur GET und liefert ausschließlich freigegebene, bereinigte Felder. Sie bietet keinen IMAP-, SMTP-, Lösch-, Verschiebe-, Antwort-, Rohquellen- oder Anhangsdownload-Zugriff."
+
+msgid "Trusted authserv IDs — advanced and optional"
+msgstr "Vertrauenswürdige Authserv-IDs — erweitert und optional"
+
+msgid "An authserv-id is the identifier before the first semicolon in an Authentication-Results header added by the receiving provider:"
+msgstr "Eine Authserv-ID ist die Kennung vor dem ersten Semikolon in einem vom empfangenden Provider ergänzten Authentication-Results-Header:"
+
+msgid "It is not necessarily the IMAP hostname, sender domain, or email domain. Do not paste the complete header. Leave the field empty unless your provider documents the ID or you have verified it independently across known messages."
+msgstr "Sie ist nicht zwingend der IMAP-Hostname, die Absenderdomain oder die E-Mail-Domain. Fügen Sie nicht den vollständigen Header ein. Lassen Sie das Feld leer, sofern der Provider die ID nicht dokumentiert oder Sie sie nicht unabhängig über bekannte Nachrichten geprüft haben."
+
+msgid "Even a matching ID can be forged inside email content and never causes automatic approval."
+msgstr "Auch eine passende ID kann im E-Mail-Inhalt gefälscht werden und führt niemals zu einer automatischen Freigabe."
+
+msgid "Attachments and PDFs"
+msgstr "Anhänge und PDFs"
+
+msgid "MailGate records only attachment filename, type, size, hash, and danger flags. Attachment bytes are discarded and never returned to the agent API. PDF content is currently not interpreted; it is contained, not declared safe."
+msgstr "MailGate erfasst bei Anhängen nur Dateiname, Typ, Größe, Hash und Gefahrenhinweise. Anhangsdaten werden verworfen und niemals über die Assistenten-API ausgegeben. PDF-Inhalte werden derzeit nicht interpretiert; sie werden abgeschirmt und nicht als sicher erklärt."
+
+msgid "What MailGate stores"
+msgstr "Was MailGate speichert"
+
+msgid "The active database stores encrypted mailbox credentials, sanitized message text, technical signals, decisions, minimal attachment metadata, tokens as hashes, and audit events. Telemetry is disabled and there is no MailGate cloud service."
+msgstr "Die aktive Datenbank speichert verschlüsselte Postfachzugangsdaten, bereinigten Nachrichtentext, technische Signale, Entscheidungen, minimale Anhangsmetadaten, Token als Hashwerte und Protokollereignisse. Telemetrie ist deaktiviert und es gibt keinen MailGate-Clouddienst."
+
+msgid "Observed local status"
+msgstr "Beobachteter lokaler Status"
+
+msgid "Web and database:"
+msgstr "Web und Datenbank:"
+
+msgid "available"
+msgstr "verfügbar"
+
+msgid "Last observed mailbox check:"
+msgstr "Letzte beobachtete Postfachprüfung:"
+
+msgid "not observed yet"
+msgstr "noch nicht beobachtet"
+
+msgid "recent"
+msgstr "aktuell"
+
+msgid "stale; check worker logs"
+msgstr "veraltet; Worker-Protokolle prüfen"
+
+msgid "no enabled mailbox"
+msgstr "kein aktiviertes Postfach"
+
+msgid "Messages:"
+msgstr "Nachrichten:"
+
+msgid "Active API tokens:"
+msgstr "Aktive API-Token:"
+
+msgid "A recent timestamp proves only that a check completed; it is not a live worker heartbeat. Status becomes stale when any enabled mailbox has no recent check."
+msgstr "Ein aktueller Zeitstempel beweist nur eine abgeschlossene Prüfung; er ist kein Live-Heartbeat des Workers. Der Status wird als veraltet angezeigt, sobald ein aktiviertes Postfach keine aktuelle Prüfung hat."
+
+msgid "Known limits"
+msgstr "Bekannte Grenzen"
+
+msgid "This build is a release candidate, not the final production release. Prompt-injection detection can miss attacks, PDFs are not inspected, and the independent installation and four-week pilot gates remain open."
+msgstr "Diese Version ist ein Release Candidate und noch keine endgültige Produktionsfreigabe. Die Prompt-Injection-Erkennung kann Angriffe übersehen, PDFs werden nicht geprüft und die unabhängige Installation sowie der vierwöchige Pilotbetrieb stehen noch aus."
+
+msgid "Source code and release gates on GitHub"
+msgstr "Quellcode und Freigabekriterien auf GitHub"
+
+msgid "Sign in"
+msgstr "Anmelden"
+
+msgid "Owner access to this MailGate installation."
+msgstr "Besitzerzugang zu dieser MailGate-Installation."
+
+msgid "First-time setup"
+msgstr "Ersteinrichtung"
+
+msgid "Setup"
+msgstr "Einrichtung"
+
+msgid "Step 1 of 2"
+msgstr "Schritt 1 von 2"
+
+msgid "Create the installation owner"
+msgstr "Installationsbesitzer erstellen"
+
+msgid "Only one owner account can be created. Use a unique, strong password."
+msgstr "Es kann nur ein Besitzerkonto erstellt werden. Verwenden Sie ein einzigartiges, starkes Passwort."
+
+msgid "Create owner"
+msgstr "Besitzer erstellen"
+
+msgid "Audit trail"
+msgstr "Änderungsprotokoll"
+
+msgid "Time"
+msgstr "Zeit"
+
+msgid "Actor"
+msgstr "Akteur"
+
+msgid "Action"
+msgstr "Aktion"
+
+msgid "Object"
+msgstr "Objekt"
+
+msgid "No audit events."
+msgstr "Keine Protokollereignisse."
+
+msgid "Messages for review"
+msgstr "Nachrichten zur Prüfung"
+
+msgid "Approved messages"
+msgstr "Freigegebene Nachrichten"
+
+msgid "Rejected messages"
+msgstr "Abgelehnte Nachrichten"
+
+msgid "Subject"
+msgstr "Betreff"
+
+msgid "Sender"
+msgstr "Absender"
+
+msgid "Category"
+msgstr "Kategorie"
+
+msgid "No messages."
+msgstr "Keine Nachrichten."
+
+msgid "Back"
+msgstr "Zurück"
+
+msgid "Safe content"
+msgstr "Sicherer Inhalt"
+
+msgid "From:"
+msgstr "Von:"
+
+msgid "Decision"
+msgstr "Entscheidung"
+
+msgid "Risk:"
+msgstr "Risiko:"
+
+msgid "Unverified provider header claims:"
+msgstr "Ungeprüfte Angaben aus Provider-Headern:"
+
+msgid "No warning signals"
+msgstr "Keine Warnsignale"
+
+msgid "Approve safe text"
+msgstr "Bereinigten Text freigeben"
+
+msgid "Reject"
+msgstr "Ablehnen"
+
+msgid "Attachment inventory"
+msgstr "Anhangsinventar"
+
+msgid "Attachment bytes are not stored or exposed to the agent. PDFs are contained but not inspected."
+msgstr "Anhangsdaten werden weder gespeichert noch dem Assistenten zugänglich gemacht. PDFs werden abgeschirmt, aber nicht geprüft."
+
+msgid "bytes"
+msgstr "Bytes"
+
+msgid "dangerous type"
+msgstr "gefährlicher Typ"
+
+msgid "No attachments."
+msgstr "Keine Anhänge."
+
+msgid "Setup token"
+msgstr "Einrichtungstoken"
+
+msgid "Read this one-time bootstrap value from .local/secrets/setup_token."
+msgstr "Lesen Sie diesen einmaligen Startwert aus .local/secrets/setup_token."
+
+msgid "Invalid setup token."
+msgstr "Ungültiges Einrichtungstoken."
+
+msgid "This installation already has an owner."
+msgstr "Diese Installation besitzt bereits einen Besitzer."
+
+msgid "Name"
+msgstr "Name"
+
+msgid "IMAP host"
+msgstr "IMAP-Host"
+
+msgid "IMAP port"
+msgstr "IMAP-Port"
+
+msgid "Mailbox username"
+msgstr "Postfach-Benutzername"
+
+msgid "Trusted authentication service IDs (advanced)"
+msgstr "Vertrauenswürdige Authentifizierungsdienst-IDs (erweitert)"
+
+msgid "Enabled"
+msgstr "Aktiviert"
+
+msgid "Optional comma-separated IDs from the start of your provider's Authentication-Results header, for example mx.example.test. This is not necessarily the IMAP host. Leave blank unless the provider documents the IDs. Matching claims can be forged and never auto-approve mail. Changes apply only to future messages."
+msgstr "Optionale kommagetrennte IDs vom Anfang des Authentication-Results-Headers Ihres Providers, zum Beispiel mx.example.test. Dies ist nicht zwingend der IMAP-Host. Lassen Sie das Feld leer, sofern der Provider die IDs nicht dokumentiert. Passende Angaben können gefälscht werden und geben E-Mails niemals automatisch frei. Änderungen gelten nur für zukünftige Nachrichten."
+
+msgid "New password"
+msgstr "Neues Passwort"
+
+msgid "Leave blank to keep the stored password."
+msgstr "Leer lassen, um das gespeicherte Passwort beizubehalten."
+
+msgid "Password"
+msgstr "Passwort"
+
+msgid "Mailbox"
+msgstr "Postfach"
+
+msgid "(no subject)"
+msgstr "(kein Betreff)"
+
+msgid "Authentication failed"
+msgstr "Authentifizierung fehlgeschlagen"
+
+msgid "Dangerous attachment type"
+msgstr "Gefährlicher Anhangstyp"
+
+msgid "Possible prompt injection"
+msgstr "Mögliche Prompt Injection"
+
+msgid "Attachment present"
+msgstr "Anhang vorhanden"
+
+msgid "Attachment content not inspected"
+msgstr "Anhangsinhalt nicht geprüft"
+
+msgid "Attachment limit exceeded"
+msgstr "Anhangslimit überschritten"
+
+msgid "Link limit exceeded"
+msgstr "Linklimit überschritten"
+
+msgid "MIME part limit exceeded"
+msgstr "Limit für MIME-Teile überschritten"
+
+msgid "Text was truncated"
+msgstr "Text wurde gekürzt"
+
+msgid "Malformed MIME structure"
+msgstr "Fehlerhafte MIME-Struktur"
+
+msgid "Sender is missing"
+msgstr "Absender fehlt"
+
+msgid "Unicode controls made visible"
+msgstr "Unicode-Steuerzeichen sichtbar gemacht"
+
+msgid "Unicode controls in headers made visible"
+msgstr "Unicode-Steuerzeichen in Headern sichtbar gemacht"
+
+msgid "Unknown character encoding"
+msgstr "Unbekannte Zeichenkodierung"
+
+msgid "Provider reports authentication passed"
+msgstr "Provider meldet erfolgreiche Authentifizierung"
+
+msgid "Manual review required"
+msgstr "Manuelle Prüfung erforderlich"
+
+msgid "Message size limit exceeded"
+msgstr "Nachrichtengrößenlimit überschritten"
+
+msgid "passed"
+msgstr "bestanden"
+
+msgid "failed"
+msgstr "fehlgeschlagen"
+
+msgid "unknown"
+msgstr "unbekannt"
+
+msgid "none"
+msgstr "keine Angabe"
+
+msgid "neutral"
+msgstr "neutral"
+
+msgid "soft failure"
+msgstr "weicher Fehler"
+
+msgid "temporary error"
+msgstr "vorübergehender Fehler"
+
+msgid "permanent error"
+msgstr "dauerhafter Fehler"
+
+msgid "Connection failed"
+msgstr "Verbindung fehlgeschlagen"
+
+msgid "Inbox unavailable"
+msgstr "Posteingang nicht verfügbar"
+
+msgid "Message search failed"
+msgstr "Nachrichtensuche fehlgeschlagen"
+
+msgid "Mailbox identity missing"
+msgstr "Postfachidentität fehlt"
+
+msgid "Message size unavailable"
+msgstr "Nachrichtengröße nicht verfügbar"
+
+msgid "Message fetch failed"
+msgstr "Nachrichtenabruf fehlgeschlagen"
+
+msgid "Processing error"
+msgstr "Verarbeitungsfehler"
+
+msgid "General"
+msgstr "Allgemein"
+
+msgid "Newsletter"
+msgstr "Newsletter"
+
+msgid "Finance"
+msgstr "Finanzen"
+
+msgid "Calendar"
+msgstr "Kalender"
+
+msgid "Uncategorized"
+msgstr "Nicht kategorisiert"
+
+msgid "Owner created"
+msgstr "Besitzer erstellt"
+
+msgid "Mailbox created"
+msgstr "Postfach erstellt"
+
+msgid "Mailbox updated"
+msgstr "Postfach aktualisiert"
+
+msgid "Mailbox deleted"
+msgstr "Postfach gelöscht"
+
+msgid "Message ingested"
+msgstr "Nachricht eingelesen"
+
+msgid "Message approved"
+msgstr "Nachricht freigegeben"
+
+msgid "Message rejected"
+msgstr "Nachricht abgelehnt"
+
+msgid "API read"
+msgstr "API-Lesezugriff"
+
+msgid "Token created"
+msgstr "Token erstellt"
+
+msgid "Token revoked"
+msgstr "Token widerrufen"
+
+msgid "Owner"
+msgstr "Besitzer"
+
+msgid "Message"
+msgstr "Nachricht"
+
+msgid "API token"
+msgstr "API-Token"
+
+msgid "Technical code: {code}"
+msgstr "Technischer Code: {code}"
+
+msgid "PASS"
+msgstr "BESTANDEN"
+
+msgid "FAIL"
+msgstr "FEHLGESCHLAGEN"
+
+msgid "MailGate"
+msgstr "MailGate"
+
+msgid "Empty message response"
+msgstr "Leere Antwort beim Nachrichtenabruf"
+
+msgid "Unsafe"
+msgstr "Unsicher"
+
+msgid "Mailbox identity cannot be changed after creation; add a new mailbox instead."
+msgstr "Die Postfachidentität kann nach dem Erstellen nicht geändert werden; fügen Sie stattdessen ein neues Postfach hinzu."
+
+msgid "Invalid TCP port."
+msgstr "Ungültiger TCP-Port."
+
+msgid "Edit this mailbox and correct its authserv IDs."
+msgstr "Bearbeiten Sie dieses Postfach und korrigieren Sie seine Authserv-IDs."
+
+msgid "Confirmation"
+msgstr "Bestätigung"
+
+msgid "Enter {challenge} exactly to confirm local deletion."
+msgstr "Geben Sie {challenge} exakt ein, um die lokale Löschung zu bestätigen."
+
+msgid "The deletion confirmation does not match."
+msgstr "Die Löschbestätigung stimmt nicht überein."
+
+msgid "Lifetime in days"
+msgstr "Laufzeit in Tagen"
+
+msgid "Days until expiry. Use 0 for a token that never expires."
+msgstr "Tage bis zum Ablauf. Verwenden Sie 0 für ein Token ohne Ablaufdatum."
+
+msgid "Use comma-separated DNS-style authserv IDs. Spaces around commas are allowed; spaces inside an ID and control characters are not."
+msgstr "Verwenden Sie kommagetrennte DNS-artige Authserv-IDs. Leerzeichen um Kommas sind erlaubt; Leerzeichen innerhalb einer ID und Steuerzeichen sind nicht erlaubt."
+
+msgid "Mailbox saved. The worker will test it without changing the mailbox."
+msgstr "Postfach gespeichert. Der Worker testet es, ohne das Postfach zu verändern."
+
+msgid "Mailbox updated. Connection changes will be tested read-only by the worker."
+msgstr "Postfach aktualisiert. Verbindungsänderungen werden vom Worker nur lesend getestet."
+
+msgid "MailGate permits encrypted IMAP on port 993 only."
+msgstr "MailGate erlaubt verschlüsseltes IMAP ausschließlich auf Port 993."
+
+msgid "This installation permits only the IMAP host {host}."
+msgstr "Diese Installation erlaubt nur den IMAP-Host {host}."
+
+msgid "Mailbox connection and its local MailGate data were deleted. The remote mailbox was not changed."
+msgstr "Die Postfachverbindung und ihre lokalen MailGate-Daten wurden gelöscht. Das entfernte Postfach wurde nicht verändert."
+
+msgid "Independent DKIM verification failed"
+msgstr "Unabhängige DKIM-Prüfung fehlgeschlagen"
+
+msgid "Independent DKIM verification passed"
+msgstr "Unabhängige DKIM-Prüfung bestanden"
+
+msgid "Independent DKIM verification temporarily unavailable"
+msgstr "Unabhängige DKIM-Prüfung vorübergehend nicht verfügbar"
+
+msgid "Independent DKIM verification:"
+msgstr "Unabhängige DKIM-Prüfung:"
+
+msgid "Mail provider"
+msgstr "E-Mail-Anbieter"
+
+msgid "This provider preset is not enabled by the installation allowlist."
+msgstr "Dieses Anbieterprofil ist in der Installationsfreigabeliste nicht aktiviert."

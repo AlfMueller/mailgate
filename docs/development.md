@@ -1,69 +1,80 @@
-# Development Foundation
+# Development and release-candidate operation
 
-Status: first Phase 1 scaffold. Mail ingestion and the graphical setup are not implemented yet.
-
-## Verified platform baseline
-
-- Python 3.13 (current patch line; container tag currently `3.13.14-slim-bookworm`)
-- Django 5.2 LTS (`5.2.16`)
-- PostgreSQL 17 (`17.10-bookworm`)
-- Psycopg 3 (`3.3.4`)
-- Gunicorn (`26.0.0`)
-
-Direct and transitive Python dependencies are recorded with hashes in `requirements.lock`. Updating a dependency requires regenerating the lock file, reviewing the diff and licenses, rebuilding the image, and running the full checks.
-
-Dockerfile frontend, Python, PostgreSQL, and Caddy references include immutable image digests. The readable version tags remain alongside the digests for maintenance and review.
-
-## Local container startup
-
-Create local secret files once:
+## Local stack
 
 ```text
+copy .env.example .env
+# Edit MAILGATE_IMAP_ALLOWED_HOST in .env before starting the stack.
 python scripts/create_local_secrets.py
-```
-
-The script refuses to overwrite existing values. The `.local` directory is ignored by Git. Secret values must never be placed in `.env`, Compose YAML, screenshots, logs, issues, or commits.
-
-Build and start the foundation:
-
-```text
 docker compose up --build -d
 docker compose ps
 ```
 
-The current web surface is intentionally limited to:
+Services prefixed with `install-` are one-shot installation jobs. A successful stack shows them as
+exited after they bootstrap database roles, apply migrations, and verify least-privilege grants.
+Only `db`, `web`, `api`, `worker`, `imap-egress`, and `proxy` remain running.
+
+The generator creates eleven independent, ignored files under `.local/secrets` for Django signing,
+database roles, authenticated mailbox-credential encryption, encrypted backups, and owner bootstrap. It refuses to
+overwrite any existing file. On POSIX hosts, the directory remains owner-only (`0700`), while its
+files are read-only (`0444`) because Compose bind-mounted secrets retain host ownership and the
+containers run as UID 10001. On multi-user Windows hosts, keep this directory on an owner-only
+volume and verify its ACL; POSIX mode bits alone do not replace Windows ACLs.
+
+Open `http://127.0.0.1:8080/setup/`. Health checks remain available at `/health/live` and `/health/ready`.
+
+Set the single operator-approved IMAP DNS hostname before adding a mailbox. Port 993 is mandatory.
+The worker connects only over certificate-verified IMAPS through an
+SNI-enforcing relay, requests a read-only mailbox, and fetches with `BODY.PEEK[]`. It has no direct
+external network, SMTP implementation or SMTP credentials. Use only a dedicated, isolated,
+synthetic test mailbox during the release-candidate phase.
+
+## Tests
 
 ```text
-GET http://127.0.0.1:8080/health/live
-GET http://127.0.0.1:8080/health/ready
+$env:PYTHONPATH="app;worker"
+$env:DJANGO_SETTINGS_MODULE="mailgate.test_settings"
+python app/manage.py test tests --settings=mailgate.test_settings
+python app/manage.py check --settings=mailgate.test_settings
+python app/manage.py makemigrations --check --dry-run --settings=mailgate.test_settings
+python -m compileall -q app worker scripts tests
+docker compose config --quiet
+docker compose build web
+docker compose --profile integration up --build --detach --wait
 ```
 
-Stop the stack with `docker compose down`. Add `--volumes` only when intentionally deleting the local PostgreSQL data volume.
+The explicit `integration` profile adds a synthetic TLS IMAP upstream and a one-shot PostgreSQL
+boundary test. It verifies an allowed certificate-checked SNI path, rejected SNI/direct egress,
+real API-function behavior, worker quarantine enforcement, denied message mutation, and both
+mailbox-configuration/worker lock orderings without using a real mailbox.
 
-## Architecture enforced by Compose
+All fixtures must use reserved domains such as `example.test`, synthetic tokens, and invented content. Real mail, credentials, private addresses, or copied production headers are prohibited.
 
-- `proxy` is the only service attached to the frontend network and publishes the loopback port.
-- `web` is attached only to the internal application and database networks.
-- `worker` is attached to the database network and its own egress network.
-- `db` is not published to the host.
-- application containers run as UID/GID 10001, use read-only root filesystems, and set `no-new-privileges`; web and worker drop all Linux capabilities, while the proxy retains only `NET_BIND_SERVICE` because the official Caddy binary carries that file capability.
-- a one-shot `migrate` service runs database migrations before web and worker start.
-- only services that need a secret receive its mounted file.
+## HTTPS evaluation
 
-The database image still performs its standard initialization behavior. Further database UID and capability hardening will be tested before production guidance is published.
-
-## Checks
-
-Tests use the built application image and its hash-locked dependencies, with the repository mounted read-only as test source:
+Use the production override with a real DNS name:
 
 ```text
-docker compose run --rm --no-deps \
-  --volume .:/workspace:ro \
-  --workdir /workspace \
-  -e MAILGATE_ENVIRONMENT=test \
-  -e MAILGATE_DATABASE_ENGINE=sqlite \
-  -e PYTHONPATH=/workspace/app:/workspace/worker \
-  web python app/manage.py test tests --settings=mailgate.test_settings
+MAILGATE_DOMAIN=mailgate.example.org
+MAILGATE_IMAP_ALLOWED_HOST=imap.example.org
+docker compose -f compose.yaml -f compose.production.yaml up --build -d
 ```
 
-CI also compiles all Python sources, runs Django system checks, validates Compose configuration, and builds the container image.
+The override enables automatic HTTPS, exact hosts/origins, proxy-header trust, HSTS, secure cookies,
+and mandatory restricted IMAP egress. A production environment intentionally refuses to start
+without HTTPS and IMAP-egress enforcement. Production deployment support is currently limited to
+Linux Docker Engine; Docker Desktop is a development/integration environment.
+
+## Data lifecycle
+
+The PostgreSQL volume is the sole persistent message store. Raw email and attachment bytes are not stored. The master key is not in the database; losing it makes mailbox credentials unrecoverable.
+
+`MAILGATE_WORKER_POLL_INTERVAL_SECONDS` controls the normal mailbox polling interval and defaults to
+30 seconds. The owner status page uses the same value and reports a stale observation only after
+more than two expected cycles plus a small tolerance.
+
+Before pilot operation, complete the encrypted backup/restore and key-rotation drill documented in
+`docs/operations.md`. Do not treat the database volume as production data until that local drill and
+the remaining release gates pass.
+
+`docker compose down` retains volumes. `docker compose down --volumes` irreversibly removes the database volume; delete the external secrets directory separately only after confirming that destruction is intended.

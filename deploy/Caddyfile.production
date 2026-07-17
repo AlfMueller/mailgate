@@ -1,0 +1,23 @@
+{
+	admin off
+}
+
+{$MAILGATE_DOMAIN} {
+	@agent_api path /api/*
+	respond @agent_api 404
+	reverse_proxy web:8000
+	header -Server
+}
+
+# Private agent API listener: published by Compose on host loopback only.
+:8080 {
+	handle /api/* {
+		reverse_proxy api:8000 {
+			header_up Host api
+		}
+	}
+	handle {
+		respond 404
+	}
+	header -Server
+}

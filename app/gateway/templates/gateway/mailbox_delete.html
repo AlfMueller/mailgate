@@ -1,0 +1,11 @@
+{% extends "gateway/base.html" %}{% load i18n %}
+{% block title %}{% translate "Delete mailbox" %} · MailGate{% endblock %}
+{% block content %}<section class="card narrow">
+<p class="eyebrow">{% translate "Local data deletion" %}</p>
+<h1>{% blocktranslate with name=mailbox.name %}Delete {{ name }}?{% endblocktranslate %}</h1>
+<p>{% translate "This removes the mailbox connection and all of its processed messages and attachment metadata from the active MailGate database." %}</p>
+<p><strong>{% translate "MailGate will not delete, move, mark, or otherwise change any email on the remote mailbox." %}</strong></p>
+<p>{% translate "Backups and underlying database storage may retain data until their own retention period expires." %}</p>
+<form method="post">{% csrf_token %}{{ form.as_p }}<button class="danger">{% translate "Delete local mailbox data" %}</button></form>
+<p><a href="{% url 'mailbox-edit' mailbox.pk %}">{% translate "Cancel" %}</a></p>
+</section>{% endblock %}

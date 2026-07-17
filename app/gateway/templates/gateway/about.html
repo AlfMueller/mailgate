@@ -1,0 +1,26 @@
+{% extends "gateway/base.html" %}{% load i18n %}
+{% block title %}{% translate "How MailGate works" %} · MailGate{% endblock %}
+{% block content %}<p class="eyebrow">{% translate "Transparent by design" %}</p><h1>{% translate "How MailGate works" %}</h1>
+<section class="card"><h2>{% translate "The safety pipeline" %}</h2><ol class="pipeline">
+<li><strong>{% translate "Read only" %}</strong> — {% translate "The worker connects with certificate-verified IMAPS, opens INBOX read-only, and fetches with BODY.PEEK. It has no SMTP implementation." %}</li>
+<li><strong>{% translate "Bounded processing" %}</strong> — {% translate "MIME and HTML are parsed with size and part limits. Active HTML, remote images, and raw message bytes are not exposed." %}</li>
+<li><strong>{% translate "Signals, not trust" %}</strong> — {% translate "SPF, DKIM, DMARC, and ARC provider headers are treated as unverified claims and never approve a message automatically." %}</li>
+<li><strong>{% translate "Owner decision" %}</strong> — {% translate "Every new message is quarantined. Only the owner can approve the sanitized representation." %}</li>
+<li><strong>{% translate "Restricted agent API" %}</strong> — {% translate "The API is GET-only and returns approved sanitized fields. It exposes no IMAP, SMTP, delete, move, reply, raw-source, or attachment-download capability." %}</li>
+</ol></section>
+<section class="card" id="authentication-results"><h2>{% translate "Trusted authserv IDs — advanced and optional" %}</h2>
+<p>{% translate "An authserv-id is the identifier before the first semicolon in an Authentication-Results header added by the receiving provider:" %}</p>
+<pre>Authentication-Results: mx.example.test; dmarc=pass; dkim=pass
+                        ^ authserv-id</pre>
+<p>{% translate "It is not necessarily the IMAP hostname, sender domain, or email domain. Do not paste the complete header. Leave the field empty unless your provider documents the ID or you have verified it independently across known messages." %}</p>
+<p><strong>{% translate "Even a matching ID can be forged inside email content and never causes automatic approval." %}</strong></p></section>
+<section class="card"><h2>{% translate "Attachments and PDFs" %}</h2><p>{% translate "MailGate records only attachment filename, type, size, hash, and danger flags. Attachment bytes are discarded and never returned to the agent API. PDF content is currently not interpreted; it is contained, not declared safe." %}</p></section>
+<section class="card"><h2>{% translate "What MailGate stores" %}</h2><p>{% translate "The active database stores encrypted mailbox credentials, sanitized message text, technical signals, decisions, minimal attachment metadata, tokens as hashes, and audit events. Telemetry is disabled and there is no MailGate cloud service." %}</p></section>
+{% if user.is_authenticated %}<section class="card"><h2>{% translate "Observed local status" %}</h2>
+<p><strong>{% translate "Web and database:" %}</strong> {% translate "available" %}</p>
+<p><strong>{% translate "Last observed mailbox check:" %}</strong> {% if last_worker_check %}{{ last_worker_check }}{% else %}{% translate "not observed yet" %}{% endif %} — {% if worker_status == "recent" %}{% translate "recent" %}{% elif worker_status == "stale" %}{% translate "stale; check worker logs" %}{% else %}{% translate "no enabled mailbox" %}{% endif %}</p>
+<p><strong>{% translate "Messages:" %}</strong> {{ message_counts.quarantined }} {% translate "quarantined" %}, {{ message_counts.approved }} {% translate "approved" %}, {{ message_counts.rejected }} {% translate "rejected" %} · <strong>{% translate "Active API tokens:" %}</strong> {{ active_token_count }}</p>
+<p>{% translate "A recent timestamp proves only that a check completed; it is not a live worker heartbeat. Status becomes stale when any enabled mailbox has no recent check." %}</p>
+</section>{% endif %}
+<section class="card"><h2>{% translate "Known limits" %}</h2><p>{% translate "This build is a release candidate, not the final production release. Prompt-injection detection can miss attacks, PDFs are not inspected, and the independent installation and four-week pilot gates remain open." %}</p><p><a href="https://github.com/AlfMueller/mailgate">{% translate "Source code and release gates on GitHub" %}</a></p></section>
+{% endblock %}

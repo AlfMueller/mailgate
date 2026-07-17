@@ -1,12 +1,38 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import ipaddress
 import os
+import re
 from collections.abc import Iterable
 from pathlib import Path
 
 
 class ConfigurationError(RuntimeError):
     """Raised when security-relevant configuration is missing or ambiguous."""
+
+
+DNS_LABEL_RE = re.compile(r"^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$")
+
+
+def get_dns_hostname(name: str, *, default: str) -> str:
+    """Return one normalized public DNS name, never an IP or wildcard."""
+    value = os.getenv(name, default).strip().lower().rstrip(".")
+    try:
+        ipaddress.ip_address(value)
+    except ValueError:
+        pass
+    else:
+        raise ConfigurationError(f"{name} must be a DNS hostname, not an IP address")
+    labels = value.split(".")
+    if (
+        len(value) > 253
+        or len(labels) < 2
+        or any(not DNS_LABEL_RE.fullmatch(label) for label in labels)
+        or value.endswith(".local")
+        or value == "localhost"
+    ):
+        raise ConfigurationError(f"{name} must be one valid public DNS hostname")
+    return value
 
 
 def get_bool(name: str, *, default: bool = False) -> bool:
@@ -47,7 +73,5 @@ def get_secret(name: str, *, minimum_length: int = 1) -> str:
         raise ConfigurationError(f"Set {name}_FILE (preferred) or {name}")
 
     if len(value) < minimum_length:
-        raise ConfigurationError(
-            f"{name} must contain at least {minimum_length} characters"
-        )
+        raise ConfigurationError(f"{name} must contain at least {minimum_length} characters")
     return value

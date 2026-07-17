@@ -1,5 +1,6 @@
-# Deployment
+# Deployment configurations
 
-The first reference Compose foundation is stored at the repository root as `compose.yaml`, so local development can use `docker compose up` without additional flags. See [docs/development.md](../docs/development.md).
+- `Caddyfile` serves the loopback-only development stack over HTTP on port 8080.
+- `Caddyfile.production` is used by `compose.production.yaml`, binds ports 80/443, and lets Caddy obtain certificates for `MAILGATE_DOMAIN`.
 
-This is not a production release: it provides PostgreSQL, migrations, health endpoints, and an inert worker process. Mail ingestion, the setup UI, HTTPS proxy, backup workflow, and release images are not implemented yet.
+The production override is a release-candidate evaluation path, not a v1 production endorsement. Review `docs/release-gates.md` before exposing any real mailbox.

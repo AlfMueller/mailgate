@@ -11,6 +11,8 @@ secrets/
 *.p12
 *.pfx
 credentials.json
+mailgate-owner*.ndjson
+*.mgb
 
 # Python
 __pycache__/
@@ -21,6 +23,7 @@ __pycache__/
 venv/
 env/
 .pytest_cache/
+.hypothesis/
 .mypy_cache/
 .ruff_cache/
 .coverage
@@ -37,6 +40,7 @@ db.sqlite3
 db.sqlite3-journal
 media/
 staticfiles/
+*.mo
 
 # Docker and deployment overrides
 docker-compose.override.yml
