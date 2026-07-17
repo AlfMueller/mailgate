@@ -14,7 +14,9 @@ Only `db`, `web`, `api`, `worker`, `imap-egress`, and `proxy` remain running.
 
 The generator creates nine independent, ignored files under `.local/secrets` for Django signing,
 database roles, authenticated mailbox-credential encryption, and owner bootstrap. It refuses to
-overwrite any existing file. On multi-user Windows hosts, keep this directory on an owner-only
+overwrite any existing file. On POSIX hosts, the directory remains owner-only (`0700`), while its
+files are read-only (`0444`) because Compose bind-mounted secrets retain host ownership and the
+containers run as UID 10001. On multi-user Windows hosts, keep this directory on an owner-only
 volume and verify its ACL; POSIX mode bits alone do not replace Windows ACLs.
 
 Open `http://127.0.0.1:8080/setup/`. Health checks remain available at `/health/live` and `/health/ready`.

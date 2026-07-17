@@ -24,18 +24,33 @@ def create_secret(path: Path, length: int) -> None:
     with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
         handle.write(secrets.token_urlsafe(length))
         handle.write("\n")
+    make_container_readable(path)
+
+
+def make_container_readable(path: Path) -> None:
+    if os.name != "nt":
+        # Compose file-backed secrets retain host ownership. The secret directory
+        # remains owner-only (0700); files need read permission for UID 10001.
+        path.chmod(0o444)
 
 
 def main() -> int:
     repository = Path(__file__).resolve().parents[1]
     target = repository / ".local" / "secrets"
     target.mkdir(mode=0o700, parents=True, exist_ok=True)
+    if os.name != "nt":
+        target.chmod(0o700)
 
     invalid = [
         name for name in SECRET_NAMES if (target / name).exists() and not (target / name).is_file()
     ]
     if invalid:
         raise SystemExit("Refusing non-file secret path(s): " + ", ".join(invalid))
+
+    for name in SECRET_NAMES:
+        path = target / name
+        if path.is_file():
+            make_container_readable(path)
 
     missing = [name for name in SECRET_NAMES if not (target / name).exists()]
     if not missing:
@@ -63,6 +78,7 @@ def main() -> int:
         with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
             handle.write(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii"))
             handle.write("\n")
+        make_container_readable(target / "master_key")
     if "setup_token" in missing:
         create_secret(target / "setup_token", 32)
     print(f"Created missing local secret files in {target}; existing files were unchanged")

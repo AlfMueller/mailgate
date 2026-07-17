@@ -60,6 +60,10 @@ jobs:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
       - name: Create synthetic Compose secrets
         run: python scripts/create_local_secrets.py
+      - name: Verify secret permissions for non-root containers
+        run: |
+          test "$(stat -c '%a' .local/secrets)" = 700
+          test "$(stat -c '%a' .local/secrets/django_secret_key)" = 444
       - name: Validate Compose configuration
         run: |
           docker compose config --quiet
