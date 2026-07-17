@@ -9,9 +9,9 @@ MailGate is a release candidate, not a production release, until every item belo
 - [x] The browser bootstrap requires an independent file-backed setup token and serializes owner creation.
 - [x] Provider authentication claims never auto-approve mail, including a forged matching `authserv-id`.
 - [x] Production Caddy denies the agent API on the public vhost and exposes it only through the host-loopback listener.
-- [ ] A separate API process and DB-enforced approved-only view isolate agent reads from owner-web privileges.
-- [ ] Destination-enforced worker egress policy proven on supported deployment platforms.
-- [ ] A persisted mailbox configuration version prevents a worker already in flight from writing
+- [x] A separate API process and DB-enforced approved-only view isolate agent reads from owner-web privileges.
+- [x] Destination-enforced worker egress policy is exercised by Linux Compose CI; production support is limited to Linux Docker Engine.
+- [x] A persisted mailbox configuration version prevents a worker already in flight from writing
   stale sync status after credential rotation or disablement.
 - [ ] Independent DKIM verification and documented provider trust presets.
 - [ ] Key rotation, encrypted backup/restore, retention/export/delete and rollback drills are automated and tested.

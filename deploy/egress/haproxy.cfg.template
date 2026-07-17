@@ -1,0 +1,29 @@
+global
+    log stdout format raw local0
+    maxconn 64
+
+defaults
+    log global
+    mode tcp
+    timeout connect 10s
+    timeout client 60s
+    timeout server 60s
+
+resolvers docker
+    nameserver docker_dns 127.0.0.11:53
+    resolve_retries 3
+    timeout resolve 2s
+    timeout retry 1s
+    hold valid 10s
+
+frontend imaps_in
+    bind :10993
+    tcp-request inspect-delay 5s
+    acl client_hello req.ssl_hello_type 1
+    acl allowed_sni req.ssl_sni -i @ALLOWED_HOST@
+    tcp-request content reject unless client_hello
+    tcp-request content reject unless allowed_sni
+    use_backend allowed_imaps if allowed_sni
+
+backend allowed_imaps
+    server allowed @ALLOWED_HOST@:993 resolvers docker resolve-prefer ipv4 init-addr libc,none

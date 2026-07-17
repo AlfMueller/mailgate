@@ -1,4 +1,18 @@
 services:
+  api:
+    environment:
+      MAILGATE_ALLOWED_HOSTS: api
+      MAILGATE_DATABASE_ENGINE: postgresql
+      MAILGATE_DATABASE_HOST: db
+      MAILGATE_DATABASE_NAME: ${MAILGATE_DATABASE_NAME:-mailgate}
+      MAILGATE_DATABASE_PASSWORD_FILE: /run/secrets/postgres_api_password
+      MAILGATE_DATABASE_PORT: "5432"
+      MAILGATE_DATABASE_USER: mailgate_api
+      MAILGATE_ENVIRONMENT: production
+      MAILGATE_SECRET_KEY_FILE: /run/secrets/api_django_secret_key
+      DJANGO_SETTINGS_MODULE: mailgate.api_settings
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; r=urllib.request.Request('http://127.0.0.1:8000/health/ready',headers={'Host':'api'}); urllib.request.urlopen(r,timeout=3)"]
   proxy:
     user: "1000:1000"
     environment:
@@ -24,12 +38,14 @@ services:
       MAILGATE_DATABASE_USER: mailgate_web
       MAILGATE_ENVIRONMENT: production
       MAILGATE_HTTPS_ONLY: "true"
+      MAILGATE_IMAP_ALLOWED_HOST: ${MAILGATE_IMAP_ALLOWED_HOST:?Set MAILGATE_IMAP_ALLOWED_HOST}
+      MAILGATE_IMAP_EGRESS_ENABLED: "true"
       MAILGATE_MASTER_KEY_FILE: /run/secrets/master_key
       MAILGATE_SECRET_KEY_FILE: /run/secrets/django_secret_key
       MAILGATE_SETUP_TOKEN_FILE: /run/secrets/setup_token
       MAILGATE_TRUST_PROXY_HEADERS: "true"
     healthcheck:
-      test: ["CMD", "python", "-c", "import urllib.request; r=urllib.request.Request('http://127.0.0.1:8000/health/ready',headers={'X-Forwarded-Proto':'https'}); urllib.request.urlopen(r,timeout=3)"]
+      test: ["CMD", "python", "-c", "import urllib.request; r=urllib.request.Request('http://127.0.0.1:8000/health/ready',headers={'Host':'${MAILGATE_DOMAIN:?Set MAILGATE_DOMAIN}','X-Forwarded-Proto':'https'}); urllib.request.urlopen(r,timeout=3)"]
   install-migrate:
     environment:
       MAILGATE_ALLOWED_HOSTS: ${MAILGATE_DOMAIN:?Set MAILGATE_DOMAIN}
@@ -42,6 +58,8 @@ services:
       MAILGATE_DATABASE_USER: mailgate_migrate
       MAILGATE_ENVIRONMENT: production
       MAILGATE_HTTPS_ONLY: "true"
+      MAILGATE_IMAP_ALLOWED_HOST: ${MAILGATE_IMAP_ALLOWED_HOST:?Set MAILGATE_IMAP_ALLOWED_HOST}
+      MAILGATE_IMAP_EGRESS_ENABLED: "true"
       MAILGATE_MASTER_KEY_FILE: /run/secrets/master_key
       MAILGATE_SECRET_KEY_FILE: /run/secrets/django_secret_key
   worker:
@@ -56,6 +74,8 @@ services:
       MAILGATE_DATABASE_USER: mailgate_worker
       MAILGATE_ENVIRONMENT: production
       MAILGATE_HTTPS_ONLY: "true"
+      MAILGATE_IMAP_ALLOWED_HOST: ${MAILGATE_IMAP_ALLOWED_HOST:?Set MAILGATE_IMAP_ALLOWED_HOST}
+      MAILGATE_IMAP_EGRESS_ENABLED: "true"
       MAILGATE_MASTER_KEY_FILE: /run/secrets/master_key
       MAILGATE_SECRET_KEY_FILE: /run/secrets/django_secret_key
 

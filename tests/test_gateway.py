@@ -382,6 +382,7 @@ class OwnerUiTests(TestCase):
         self.assertEqual(response.status_code, 403)
 
 
+@override_settings(ROOT_URLCONF="mailgate.api_urls")
 class ApiTests(TestCase):
     def setUp(self):
         self.mailbox = Mailbox.objects.create(

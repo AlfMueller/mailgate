@@ -9,5 +9,6 @@ Provider authentication claims are recorded but never auto-approve a message. Fa
 only by mailbox ID and stable error code. The database role cannot access owner accounts, sessions,
 or API tokens and cannot update message approval state.
 
-The worker is the only application process attached to `worker_egress`. Destination-enforced egress
-allowlisting remains a release gate.
+The worker has only internal database and IMAP-relay networks. It cannot connect directly to the
+internet. The hardened `imap-egress` relay accepts end-to-end TLS only for the installation's exact
+operator-approved hostname and forwards that traffic only to port 993.

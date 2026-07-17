@@ -748,5 +748,11 @@ msgstr "Postfach gespeichert. Der Worker testet es, ohne das Postfach zu veränd
 msgid "Mailbox updated. Connection changes will be tested read-only by the worker."
 msgstr "Postfach aktualisiert. Verbindungsänderungen werden vom Worker nur lesend getestet."
 
+msgid "MailGate permits encrypted IMAP on port 993 only."
+msgstr "MailGate erlaubt verschlüsseltes IMAP ausschließlich auf Port 993."
+
+msgid "This installation permits only the IMAP host {host}."
+msgstr "Diese Installation erlaubt nur den IMAP-Host {host}."
+
 msgid "Mailbox connection and its local MailGate data were deleted. The remote mailbox was not changed."
 msgstr "Die Postfachverbindung und ihre lokalen MailGate-Daten wurden gelöscht. Das entfernte Postfach wurde nicht verändert."

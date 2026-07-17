@@ -3,7 +3,7 @@
 import os
 from pathlib import Path
 
-from mailgate.config import ConfigurationError, get_bool, get_list, get_secret
+from mailgate.config import ConfigurationError, get_bool, get_dns_hostname, get_list, get_secret
 
 BASE_DIR = Path(__file__).resolve().parents[2]
 
@@ -107,6 +107,18 @@ except ValueError as exc:
 if not 1 <= MAILGATE_WORKER_POLL_INTERVAL_SECONDS <= 86_400:
     raise ConfigurationError("MAILGATE_WORKER_POLL_INTERVAL_SECONDS must be between 1 and 86400")
 
+MAILGATE_IMAP_ALLOWED_HOST = get_dns_hostname(
+    "MAILGATE_IMAP_ALLOWED_HOST", default="imap.example.test"
+)
+MAILGATE_IMAP_EGRESS_ENABLED = get_bool("MAILGATE_IMAP_EGRESS_ENABLED", default=False)
+MAILGATE_IMAP_EGRESS_HOST = os.getenv("MAILGATE_IMAP_EGRESS_HOST", "imap-egress").strip()
+try:
+    MAILGATE_IMAP_EGRESS_PORT = int(os.getenv("MAILGATE_IMAP_EGRESS_PORT", "10993"))
+except ValueError as exc:
+    raise ConfigurationError("MAILGATE_IMAP_EGRESS_PORT must be an integer") from exc
+if not 1 <= MAILGATE_IMAP_EGRESS_PORT <= 65535:
+    raise ConfigurationError("MAILGATE_IMAP_EGRESS_PORT must be a valid TCP port")
+
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STORAGES = {
@@ -151,6 +163,8 @@ if ENVIRONMENT == "production" and not HTTPS_ONLY:
     raise ConfigurationError("MAILGATE_HTTPS_ONLY must be enabled in production")
 if ENVIRONMENT == "production" and DEBUG:
     raise ConfigurationError("MAILGATE_DEBUG must be disabled in production")
+if ENVIRONMENT == "production" and not MAILGATE_IMAP_EGRESS_ENABLED:
+    raise ConfigurationError("MAILGATE_IMAP_EGRESS_ENABLED must be enabled in production")
 if ENVIRONMENT == "production" and any(host == "*" for host in ALLOWED_HOSTS):
     raise ConfigurationError("Wildcard hosts are forbidden in production")
 if ENVIRONMENT not in {"development", "test", "production"}:

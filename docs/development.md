@@ -10,16 +10,20 @@ docker compose ps
 
 Services prefixed with `install-` are one-shot installation jobs. A successful stack shows them as
 exited after they bootstrap database roles, apply migrations, and verify least-privilege grants.
-Only `db`, `web`, `worker`, and `proxy` remain running.
+Only `db`, `web`, `api`, `worker`, `imap-egress`, and `proxy` remain running.
 
-The generator creates seven independent, ignored files under `.local/secrets` for Django signing,
+The generator creates nine independent, ignored files under `.local/secrets` for Django signing,
 database roles, authenticated mailbox-credential encryption, and owner bootstrap. It refuses to
 overwrite any existing file. On multi-user Windows hosts, keep this directory on an owner-only
 volume and verify its ACL; POSIX mode bits alone do not replace Windows ACLs.
 
 Open `http://127.0.0.1:8080/setup/`. Health checks remain available at `/health/live` and `/health/ready`.
 
-The worker connects only over certificate-verified IMAPS, requests a read-only mailbox, and fetches with `BODY.PEEK[]`. It has no SMTP implementation or credentials. Use only a dedicated, isolated, synthetic test mailbox during the release-candidate phase.
+Copy `.env.example` to `.env` and set the single operator-approved IMAP DNS hostname before adding a
+mailbox. Port 993 is mandatory. The worker connects only over certificate-verified IMAPS through an
+SNI-enforcing relay, requests a read-only mailbox, and fetches with `BODY.PEEK[]`. It has no direct
+external network, SMTP implementation or SMTP credentials. Use only a dedicated, isolated,
+synthetic test mailbox during the release-candidate phase.
 
 ## Tests
 
@@ -32,7 +36,13 @@ python app/manage.py makemigrations --check --dry-run --settings=mailgate.test_s
 python -m compileall -q app worker scripts tests
 docker compose config --quiet
 docker compose build web
+docker compose --profile integration up --build --detach --wait
 ```
+
+The explicit `integration` profile adds a synthetic TLS IMAP upstream and a one-shot PostgreSQL
+boundary test. It verifies an allowed certificate-checked SNI path, rejected SNI/direct egress,
+real API-function behavior, worker quarantine enforcement, denied message mutation, and both
+mailbox-configuration/worker lock orderings without using a real mailbox.
 
 All fixtures must use reserved domains such as `example.test`, synthetic tokens, and invented content. Real mail, credentials, private addresses, or copied production headers are prohibited.
 
@@ -42,10 +52,14 @@ Use the production override with a real DNS name:
 
 ```text
 MAILGATE_DOMAIN=mailgate.example.org
+MAILGATE_IMAP_ALLOWED_HOST=imap.example.org
 docker compose -f compose.yaml -f compose.production.yaml up --build -d
 ```
 
-The override enables automatic HTTPS, exact hosts/origins, proxy-header trust, HSTS, and secure cookies. A production environment intentionally refuses to start without HTTPS enforcement.
+The override enables automatic HTTPS, exact hosts/origins, proxy-header trust, HSTS, secure cookies,
+and mandatory restricted IMAP egress. A production environment intentionally refuses to start
+without HTTPS and IMAP-egress enforcement. Production deployment support is currently limited to
+Linux Docker Engine; Docker Desktop is a development/integration environment.
 
 ## Data lifecycle
 

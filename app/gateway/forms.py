@@ -90,9 +90,20 @@ class MailboxForm(forms.ModelForm):
 
     def clean_port(self):
         port = self.cleaned_data["port"]
-        if not 1 <= port <= 65535:
-            raise forms.ValidationError(_("Invalid TCP port."))
+        if port != 993:
+            raise forms.ValidationError(_("MailGate permits encrypted IMAP on port 993 only."))
         return port
+
+    def clean_host(self):
+        host = self.cleaned_data["host"].strip().lower().rstrip(".")
+        if host != settings.MAILGATE_IMAP_ALLOWED_HOST:
+            raise forms.ValidationError(
+                format_lazy(
+                    _("This installation permits only the IMAP host {host}."),
+                    host=settings.MAILGATE_IMAP_ALLOWED_HOST,
+                )
+            )
+        return host
 
     def clean_trusted_authserv_ids(self):
         try:

@@ -10,6 +10,7 @@ x-app-environment: &app-environment
   MAILGATE_SECRET_KEY_FILE: /run/secrets/django_secret_key
   MAILGATE_MASTER_KEY_FILE: /run/secrets/master_key
   MAILGATE_HTTPS_ONLY: ${MAILGATE_HTTPS_ONLY:-false}
+  MAILGATE_IMAP_ALLOWED_HOST: ${MAILGATE_IMAP_ALLOWED_HOST:-imap.example.test}
   MAILGATE_TRUST_PROXY_HEADERS: ${MAILGATE_TRUST_PROXY_HEADERS:-false}
   MAILGATE_CSRF_TRUSTED_ORIGINS: ${MAILGATE_CSRF_TRUSTED_ORIGINS:-}
   MAILGATE_WORKER_POLL_INTERVAL_SECONDS: ${MAILGATE_WORKER_POLL_INTERVAL_SECONDS:-30}
@@ -69,6 +70,7 @@ services:
       - postgres_password
       - postgres_migrate_password
       - postgres_web_password
+      - postgres_api_password
       - postgres_worker_password
     security_opt:
       - no-new-privileges:true
@@ -149,6 +151,52 @@ services:
       - postgres_web_password
       - setup_token
 
+  api:
+    <<: *app-hardening
+    build:
+      context: .
+    command:
+      - gunicorn
+      - --bind=0.0.0.0:8000
+      - --workers=2
+      - --threads=2
+      - --no-control-socket
+      - --limit-request-line=2048
+      - --limit-request-fields=30
+      - --limit-request-field_size=4096
+      - --header-map=refuse
+      - --access-logfile=-
+      - --access-logformat=%(h)s %(t)s "%(m)s %(U)s %(H)s" %(s)s %(b)s
+      - --error-logfile=-
+      - mailgate.api_wsgi:application
+    restart: unless-stopped
+    depends_on:
+      install-db-permissions:
+        condition: service_completed_successfully
+    environment:
+      MAILGATE_ALLOWED_HOSTS: ${MAILGATE_API_ALLOWED_HOSTS:-localhost,127.0.0.1,api}
+      MAILGATE_DATABASE_ENGINE: postgresql
+      MAILGATE_DATABASE_HOST: db
+      MAILGATE_DATABASE_NAME: ${MAILGATE_DATABASE_NAME:-mailgate}
+      MAILGATE_DATABASE_PORT: "5432"
+      MAILGATE_DATABASE_PASSWORD_FILE: /run/secrets/postgres_api_password
+      MAILGATE_DATABASE_USER: mailgate_api
+      MAILGATE_ENVIRONMENT: ${MAILGATE_ENVIRONMENT:-development}
+      MAILGATE_SECRET_KEY_FILE: /run/secrets/api_django_secret_key
+      DJANGO_SETTINGS_MODULE: mailgate.api_settings
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - application
+      - database
+    secrets:
+      - api_django_secret_key
+      - postgres_api_password
+
   proxy:
     image: caddy:2.11.4-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
     restart: unless-stopped
@@ -159,6 +207,8 @@ services:
       - NET_BIND_SERVICE
     command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
     depends_on:
+      api:
+        condition: service_healthy
       web:
         condition: service_healthy
     environment:
@@ -177,6 +227,80 @@ services:
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
 
+  imap-egress:
+    image: haproxy:3.2.21-alpine@sha256:66e25cc9a8332635f4e897f7f4b1e5622c25f09f0ee23cddc6ce9bdb3a24772a
+    restart: unless-stopped
+    user: "10001:10001"
+    command:
+      - sh
+      - -c
+      - 'sh /etc/mailgate/render-haproxy.sh && exec haproxy -W -db -f /tmp/haproxy.cfg'
+    environment:
+      MAILGATE_IMAP_ALLOWED_HOST: ${MAILGATE_IMAP_ALLOWED_HOST:-imap.example.test}
+    healthcheck:
+      test: ["CMD-SHELL", "nc -z 127.0.0.1 10993"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    cap_drop:
+      - ALL
+    networks:
+      - imap_egress_internal
+      - imap_egress_upstream
+    pids_limit: 64
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=8m,uid=10001,gid=10001
+    volumes:
+      - ./deploy/egress/haproxy.cfg.template:/etc/mailgate/haproxy.cfg.template:ro
+      - ./deploy/egress/render-haproxy.sh:/etc/mailgate/render-haproxy.sh:ro
+
+  test-imap-upstream:
+    <<: *app-hardening
+    profiles:
+      - integration
+    build:
+      context: .
+    command: ["python", "/integration/synthetic_imap_server.py"]
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('127.0.0.1',993),3).close()"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
+    networks:
+      imap_egress_upstream:
+        aliases:
+          - imap.example.test
+    volumes:
+      - ./scripts/synthetic_imap_server.py:/integration/synthetic_imap_server.py:ro
+
+  test-postgres-boundaries:
+    <<: *app-hardening
+    profiles:
+      - integration
+    build:
+      context: .
+    command: ["python", "/integration/verify_postgres_boundaries.py"]
+    depends_on:
+      install-db-permissions:
+        condition: service_completed_successfully
+    environment:
+      PGHOST: db
+      PGDATABASE: ${MAILGATE_DATABASE_NAME:-mailgate}
+      PGUSER: mailgate_admin
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+    networks:
+      - database
+    restart: "no"
+    secrets:
+      - postgres_password
+    volumes:
+      - ./scripts/verify_postgres_boundaries.py:/integration/verify_postgres_boundaries.py:ro
+
   worker:
     <<: *app-hardening
     build:
@@ -186,10 +310,15 @@ services:
     depends_on:
       install-db-permissions:
         condition: service_completed_successfully
+      imap-egress:
+        condition: service_healthy
     environment:
       <<: *app-environment
       MAILGATE_DATABASE_PASSWORD_FILE: /run/secrets/postgres_worker_password
       MAILGATE_DATABASE_USER: mailgate_worker
+      MAILGATE_IMAP_EGRESS_ENABLED: "true"
+      MAILGATE_IMAP_EGRESS_HOST: imap-egress
+      MAILGATE_IMAP_EGRESS_PORT: "10993"
     healthcheck:
       test: ["CMD", "python", "-m", "mailgate_worker", "--check-once"]
       interval: 30s
@@ -198,7 +327,7 @@ services:
       start_period: 10s
     networks:
       - database
-      - worker_egress
+      - imap_egress_internal
     secrets:
       - django_secret_key
       - master_key
@@ -210,7 +339,9 @@ networks:
   database:
     internal: true
   frontend: {}
-  worker_egress: {}
+  imap_egress_internal:
+    internal: true
+  imap_egress_upstream: {}
 
 secrets:
   django_secret_key:
@@ -221,12 +352,16 @@ secrets:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_migrate_password
   postgres_web_password:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_web_password
+  postgres_api_password:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_api_password
   postgres_worker_password:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_worker_password
   master_key:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/master_key
   setup_token:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/setup_token
+  api_django_secret_key:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/api_django_secret_key
 
 volumes:
   postgres_data: {}

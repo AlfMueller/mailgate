@@ -5,8 +5,10 @@ from __future__ import annotations
 import imaplib
 import logging
 import re
+import socket
 import ssl
 
+from django.conf import settings
 from django.db import transaction
 from django.utils import timezone
 
@@ -22,6 +24,29 @@ class MailboxSyncError(RuntimeError):
     def __init__(self, code: str):
         self.code = code
         super().__init__(code)
+
+
+class EgressIMAP4SSL(imaplib.IMAP4_SSL):
+    """Keep end-to-end TLS/SNI for the mailbox while dialing the fixed egress relay."""
+
+    def _create_socket(self, timeout):
+        raw_socket = socket.create_connection(
+            (settings.MAILGATE_IMAP_EGRESS_HOST, settings.MAILGATE_IMAP_EGRESS_PORT),
+            timeout,
+        )
+        return self.ssl_context.wrap_socket(raw_socket, server_hostname=self.host)
+
+
+def _open_imap(mailbox: Mailbox, timeout: float):
+    if mailbox.host != settings.MAILGATE_IMAP_ALLOWED_HOST or mailbox.port != 993:
+        raise MailboxSyncError("egress_policy_denied")
+    client_class = EgressIMAP4SSL if settings.MAILGATE_IMAP_EGRESS_ENABLED else imaplib.IMAP4_SSL
+    return client_class(
+        mailbox.host,
+        mailbox.port,
+        timeout=timeout,
+        ssl_context=ssl.create_default_context(),
+    )
 
 
 def _response_bytes(response) -> bytes:
@@ -64,6 +89,7 @@ def _store_message(
     raw: bytes = b"",
     *,
     unsafe_reason: str = "",
+    expected_config_version: int,
 ) -> bool:
     trusted = {
         item.strip().lower() for item in mailbox.trusted_authserv_ids.split(",") if item.strip()
@@ -84,8 +110,19 @@ def _store_message(
         risk, state, reasons = "high", "quarantined", ["processing_error"]
         category, priority, summary = "unsafe", 1, "Message quarantined because processing failed"
     with transaction.atomic():
+        locked_mailbox = (
+            Mailbox.objects.select_for_update()
+            .filter(
+                pk=mailbox.pk,
+                enabled=True,
+                config_version=expected_config_version,
+            )
+            .first()
+        )
+        if locked_mailbox is None:
+            raise MailboxSyncError("configuration_changed")
         message, created = Message.objects.get_or_create(
-            mailbox=mailbox,
+            mailbox=locked_mailbox,
             uid_validity=validity,
             uid=uid,
             defaults={
@@ -124,15 +161,11 @@ def _store_message(
 def sync_mailbox(mailbox: Mailbox, *, batch_size: int = 50, timeout: float = 30) -> int:
     if not mailbox.enabled:
         return 0
+    expected_config_version = mailbox.config_version
     password = decrypt_secret(mailbox.password_encrypted)
     client = None
     try:
-        client = imaplib.IMAP4_SSL(
-            mailbox.host,
-            mailbox.port,
-            timeout=timeout,
-            ssl_context=ssl.create_default_context(),
-        )
+        client = _open_imap(mailbox, timeout)
         status, _ = client.login(mailbox.username, password)
         if status != "OK":
             raise MailboxSyncError("authentication_failed")
@@ -159,7 +192,13 @@ def sync_mailbox(mailbox: Mailbox, *, batch_size: int = 50, timeout: float = 30)
                 raise MailboxSyncError("size_unavailable")
             if size > MAX_MESSAGE_BYTES:
                 created += int(
-                    _store_message(mailbox, validity, uid, unsafe_reason="message_too_large")
+                    _store_message(
+                        mailbox,
+                        validity,
+                        uid,
+                        unsafe_reason="message_too_large",
+                        expected_config_version=expected_config_version,
+                    )
                 )
                 mailbox.last_uid = max(mailbox.last_uid, uid)
                 continue
@@ -169,25 +208,44 @@ def sync_mailbox(mailbox: Mailbox, *, batch_size: int = 50, timeout: float = 30)
             raw = _response_bytes(response)
             if not raw:
                 raise MailboxSyncError("empty_message")
-            created += int(_store_message(mailbox, validity, uid, raw))
+            created += int(
+                _store_message(
+                    mailbox,
+                    validity,
+                    uid,
+                    raw,
+                    expected_config_version=expected_config_version,
+                )
+            )
             mailbox.last_uid = max(mailbox.last_uid, uid)
         mailbox.last_sync_at = timezone.now()
         mailbox.last_error_code = ""
-        mailbox.save(
-            update_fields=(
-                "uid_validity",
-                "last_uid",
-                "last_sync_at",
-                "last_error_code",
-                "updated_at",
-            )
+        updated = Mailbox.objects.filter(
+            pk=mailbox.pk,
+            enabled=True,
+            config_version=expected_config_version,
+        ).update(
+            uid_validity=mailbox.uid_validity,
+            last_uid=mailbox.last_uid,
+            last_sync_at=mailbox.last_sync_at,
+            last_error_code="",
+            updated_at=timezone.now(),
         )
+        if updated != 1:
+            raise MailboxSyncError("configuration_changed")
         return created
     except (TimeoutError, imaplib.IMAP4.error, OSError, MailboxSyncError) as exc:
         code = exc.code if isinstance(exc, MailboxSyncError) else "connection_failed"
-        mailbox.last_error_code = code
-        mailbox.last_sync_at = timezone.now()
-        mailbox.save(update_fields=("last_error_code", "last_sync_at", "updated_at"))
+        if code != "configuration_changed":
+            Mailbox.objects.filter(
+                pk=mailbox.pk,
+                enabled=True,
+                config_version=expected_config_version,
+            ).update(
+                last_error_code=code,
+                last_sync_at=timezone.now(),
+                updated_at=timezone.now(),
+            )
         logger.warning("Mailbox sync failed mailbox_id=%s code=%s", mailbox.pk, code)
         raise MailboxSyncError(code) from exc
     finally:

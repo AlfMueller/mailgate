@@ -19,7 +19,9 @@ The release-candidate implementation includes:
   `messages:read:approved`; tokens expire by default, while an explicit lifetime of `0` creates a
   higher-risk token without automatic expiry;
 - a GET-only API that returns approved sanitized fields and hides quarantined IDs;
-- Docker Compose with PostgreSQL, separate web/worker processes, Caddy, file-backed secrets, non-root read-only application containers, and an optional automatic-HTTPS production override;
+- Docker Compose with PostgreSQL, separate owner-web, approved-only API and worker processes, Caddy, file-backed secrets, non-root read-only application containers, and an optional automatic-HTTPS production override;
+- a database-enforced approved-only API view/function and a dedicated API role that cannot read base, token, audit, mailbox or attachment tables;
+- destination-enforced IMAPS egress through an SNI-checking relay; the worker has no direct external network and one installation permits exactly one configured IMAP host on port 993;
 - synthetic unit, adversarial, UI authorization, API authorization, and IMAP command-boundary tests;
 - an owner-only local prompt-injection self-test, including PDF-attachment containment, that
   performs no SMTP, IMAP, or message-store mutation and makes no claim to inspect PDFs or detect
@@ -27,7 +29,7 @@ The release-candidate implementation includes:
 - a public, static “How MailGate works” page plus owner-only observed local status, and a
   GitHub-friendly translation workflow documented in [docs/translating.md](docs/translating.md).
 
-This is deliberately **not yet labelled production-ready**. Database-role isolation, enforced egress allowlisting, key rotation and restore drills, broader security automation, an independent installation, and the required four-week pilot remain open. See [release gates](docs/release-gates.md).
+This is deliberately **not yet labelled production-ready**. The former API/database, worker-egress and stale-configuration blockers are implemented and continuously tested. Key rotation and restore drills, broader security automation, an independent installation, and the required four-week pilot remain open. See [release gates](docs/release-gates.md).
 
 ## Quick start for local evaluation
 
@@ -35,6 +37,8 @@ Prerequisites: Docker Engine with Docker Compose and Python 3.12 or newer.
 
 ```text
 python scripts/create_local_secrets.py
+copy .env.example .env
+# Edit MAILGATE_IMAP_ALLOWED_HOST in .env before adding a mailbox.
 docker compose up --build -d
 ```
 
@@ -60,6 +64,7 @@ MAILGATE_DOMAIN=mailgate.example.org
 MAILGATE_ENVIRONMENT=production
 MAILGATE_HTTPS_ONLY=true
 MAILGATE_TRUST_PROXY_HEADERS=true
+MAILGATE_IMAP_ALLOWED_HOST=imap.example.org
 docker compose -f compose.yaml -f compose.production.yaml up --build -d
 ```
 

@@ -24,6 +24,7 @@ class Mailbox(models.Model):
     last_uid = models.PositiveBigIntegerField(default=0)
     last_sync_at = models.DateTimeField(null=True, blank=True)
     last_error_code = models.CharField(max_length=80, blank=True)
+    config_version = models.PositiveBigIntegerField(default=1, editable=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -119,6 +120,25 @@ class ApiToken(models.Model):
         return self.revoked_at is None and (
             self.expires_at is None or self.expires_at > timezone.now()
         )
+
+
+class ApprovedMessage(models.Model):
+    id = models.UUIDField(primary_key=True)
+    sender = models.CharField(max_length=320)
+    sender_name = models.CharField(max_length=320)
+    subject = models.CharField(max_length=998)
+    received_at = models.DateTimeField(null=True)
+    category = models.CharField(max_length=80)
+    priority = models.PositiveSmallIntegerField()
+    risk = models.CharField(max_length=10)
+    summary = models.TextField()
+    sanitized_text = models.TextField()
+    links = models.JSONField()
+    ingested_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "mailgate_api_approved_message"
 
 
 class AuditEvent(models.Model):

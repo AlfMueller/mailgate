@@ -2,7 +2,7 @@
 
 from django.contrib.auth import views as auth_views
 from django.urls import include, path
-from gateway import api, views
+from gateway import views
 
 from mailgate import health
 
@@ -25,9 +25,4 @@ urlpatterns = [
     path("tokens/", views.tokens, name="tokens"),
     path("tokens/<int:token_id>/revoke/", views.token_revoke, name="token-revoke"),
     path("audit/", views.audit_log, name="audit"),
-    path("api/v1/messages", api.messages, name="api-messages"),
-    path(
-        "api/v1/messages/<uuid:message_id>/summary", api.message_summary, name="api-message-summary"
-    ),
-    path("api/v1/categories", api.categories, name="api-categories"),
 ]

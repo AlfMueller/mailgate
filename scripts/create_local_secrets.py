@@ -10,7 +10,9 @@ SECRET_NAMES = (
     "postgres_password",
     "postgres_migrate_password",
     "postgres_web_password",
+    "postgres_api_password",
     "postgres_worker_password",
+    "api_django_secret_key",
     "master_key",
     "setup_token",
 )
@@ -43,7 +45,13 @@ def main() -> int:
         create_secret(target / "django_secret_key", 64)
     if "postgres_password" in missing:
         create_secret(target / "postgres_password", 48)
-    for name in ("postgres_migrate_password", "postgres_web_password", "postgres_worker_password"):
+    for name in (
+        "postgres_migrate_password",
+        "postgres_web_password",
+        "postgres_api_password",
+        "postgres_worker_password",
+        "api_django_secret_key",
+    ):
         if name in missing:
             create_secret(target / name, 48)
     if "master_key" in missing:

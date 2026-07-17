@@ -6,7 +6,7 @@ from pathlib import Path
 from unittest import TestCase
 from unittest.mock import patch
 
-from mailgate.config import ConfigurationError, get_bool, get_secret
+from mailgate.config import ConfigurationError, get_bool, get_dns_hostname, get_secret
 
 
 class SecretConfigurationTests(TestCase):
@@ -48,3 +48,19 @@ class BooleanConfigurationTests(TestCase):
         with patch.dict(os.environ, {"EXAMPLE_BOOL": "perhaps"}, clear=False):
             with self.assertRaises(ConfigurationError):
                 get_bool("EXAMPLE_BOOL")
+
+
+class HostnameConfigurationTests(TestCase):
+    def test_normalizes_dns_hostname(self):
+        with patch.dict(os.environ, {"EXAMPLE_HOST": "IMAP.Example.Test."}, clear=False):
+            self.assertEqual(
+                get_dns_hostname("EXAMPLE_HOST", default="unused.example.test"),
+                "imap.example.test",
+            )
+
+    def test_rejects_ip_wildcard_and_local_names(self):
+        for value in ("127.0.0.1", "*.example.test", "localhost", "imap.local", "singlelabel"):
+            with self.subTest(value=value):
+                with patch.dict(os.environ, {"EXAMPLE_HOST": value}, clear=False):
+                    with self.assertRaises(ConfigurationError):
+                        get_dns_hostname("EXAMPLE_HOST", default="unused.example.test")

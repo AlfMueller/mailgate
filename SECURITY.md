@@ -1,6 +1,6 @@
 # Security Policy
 
-MailGate is security-sensitive software and is currently in its design phase. There are no supported production releases yet.
+MailGate is security-sensitive software and is currently a technical release candidate. There are no supported production releases yet.
 
 ## Supported versions
 

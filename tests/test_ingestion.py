@@ -1,12 +1,12 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
 from email.message import EmailMessage
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from gateway.crypto import encrypt_secret
-from gateway.ingestion import sync_mailbox
+from gateway.ingestion import EgressIMAP4SSL, MailboxSyncError, sync_mailbox
 from gateway.mail import MAX_MESSAGE_BYTES
 from gateway.models import ApiToken, Attachment, Mailbox, Message
 
@@ -23,6 +23,7 @@ class FakeImap:
     instances = []
     raw = RAW
     reported_size = len(RAW)
+    before_body_fetch = None
 
     def __init__(self, host, port, timeout, ssl_context):
         self.commands = []
@@ -46,6 +47,8 @@ class FakeImap:
             return "OK", [b"7"]
         if args[-1] == "(RFC822.SIZE)":
             return "OK", [(f"7 (RFC822.SIZE {self.reported_size})".encode(), b"")]
+        if type(self).before_body_fetch is not None:
+            type(self).before_body_fetch()
         return "OK", [(b"7 (BODY[] {1})", self.raw), b")"]
 
     def logout(self):
@@ -57,6 +60,7 @@ class IngestionTests(TestCase):
         FakeImap.instances.clear()
         FakeImap.raw = RAW
         FakeImap.reported_size = len(RAW)
+        FakeImap.before_body_fetch = None
         self.mailbox = Mailbox.objects.create(
             name="Test",
             host="imap.example.test",
@@ -104,6 +108,7 @@ class IngestionTests(TestCase):
         self.assertEqual(message.state, Message.State.QUARANTINED)
         self.assertEqual(message.signals, ["message_too_large"])
 
+    @override_settings(ROOT_URLCONF="mailgate.api_urls")
     @patch("gateway.ingestion.imaplib.IMAP4_SSL", FakeImap)
     def test_pdf_injection_bytes_do_not_reach_persistence_or_approved_api(self):
         marker = b"SYNTHETIC_PDF_INJECTION_MARKER"
@@ -137,3 +142,41 @@ class IngestionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotIn(marker, response.content)
         self.assertNotIn("attachments", response.json())
+
+    @patch("gateway.ingestion.imaplib.IMAP4_SSL", FakeImap)
+    def test_configuration_change_during_fetch_discards_message_and_cursor(self):
+        def change_configuration():
+            Mailbox.objects.filter(pk=self.mailbox.pk).update(config_version=2, enabled=False)
+
+        FakeImap.before_body_fetch = change_configuration
+        with self.assertRaisesRegex(MailboxSyncError, "configuration_changed"):
+            sync_mailbox(self.mailbox)
+        self.mailbox.refresh_from_db()
+        self.assertFalse(self.mailbox.enabled)
+        self.assertEqual(self.mailbox.last_uid, 0)
+        self.assertEqual(Message.objects.count(), 0)
+
+    @override_settings(
+        MAILGATE_IMAP_ALLOWED_HOST="allowed.example.test",
+        MAILGATE_IMAP_EGRESS_ENABLED=False,
+    )
+    def test_unapproved_imap_destination_is_denied_before_network(self):
+        with patch("gateway.ingestion.imaplib.IMAP4_SSL") as connect:
+            with self.assertRaisesRegex(MailboxSyncError, "egress_policy_denied"):
+                sync_mailbox(self.mailbox)
+        connect.assert_not_called()
+
+    @override_settings(
+        MAILGATE_IMAP_EGRESS_HOST="imap-egress",
+        MAILGATE_IMAP_EGRESS_PORT=10993,
+    )
+    def test_egress_transport_preserves_mailbox_sni(self):
+        context = MagicMock()
+        client = object.__new__(EgressIMAP4SSL)
+        client.host = "imap.example.test"
+        client.ssl_context = context
+        raw_socket = object()
+        with patch("gateway.ingestion.socket.create_connection", return_value=raw_socket) as dial:
+            client._create_socket(7)
+        dial.assert_called_once_with(("imap-egress", 10993), 7)
+        context.wrap_socket.assert_called_once_with(raw_socket, server_hostname="imap.example.test")

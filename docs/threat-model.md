@@ -31,7 +31,11 @@ MailGate allows an owner's AI agent to read selected, sanitized message informat
 
 ### Mail provider to worker
 
-The worker accepts hostile message data. It trusts authentication results only when they come from explicitly configured receiving infrastructure. Parsing is bounded and does not execute attachments, scripts, forms, styles, links, or remote images.
+The worker accepts hostile message data. Its container has no direct external network; an SNI-aware
+TCP relay permits end-to-end IMAPS only to the installation's one configured DNS hostname on port
+993. It trusts authentication results only when they come from explicitly configured receiving
+infrastructure. Parsing is bounded and does not execute attachments, scripts, forms, styles, links,
+or remote images.
 
 ### Worker to classifier
 
@@ -43,7 +47,14 @@ The policy engine permits only predefined state transitions. The classifier reco
 
 ### Database to web and API
 
-Administrative owner sessions and AI-agent credentials are separate. An AI-agent credential is hashed at rest, shown once, revocable, rate-limited, and limited to approved sanitized data. Tokens expire by default; the owner may explicitly create one without automatic expiry for integrations that cannot rotate credentials. It does not authorize raw content, quarantine, configuration, or any write.
+Administrative owner sessions and AI-agent credentials are separate processes and PostgreSQL roles.
+The API process does not receive setup or mailbox master secrets. Its role can read only an
+approved-message security-barrier view and call one constrained authorization/rate/audit function;
+it cannot select base, token, audit, mailbox, attachment, owner, or session tables. An AI-agent
+credential is hashed at rest, shown once, revocable, rate-limited, and limited to approved sanitized
+data. Tokens expire by default; the owner may explicitly create one without automatic expiry for
+integrations that cannot rotate credentials. It does not authorize raw content, quarantine,
+configuration, or arbitrary writes.
 
 ### MailGate API to an AI agent
 
