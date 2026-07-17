@@ -1,6 +1,19 @@
 # Planned Architecture
 
-Status: design baseline; no implementation exists yet.
+Status: Phase 1 foundation implemented; mailbox ingestion and inspection pipeline still planned.
+
+## Current foundation
+
+The repository now enforces the first deployable process boundaries:
+
+- Caddy is the only process connected to the frontend network and host loopback port.
+- Django is reachable only through Caddy and is attached to internal application and database networks.
+- The worker is attached to the internal database network and a separate egress network.
+- PostgreSQL is attached only to the internal database network and has no published port.
+- Compose mounts secret files only into the services that need them.
+- Web, worker, and proxy run unprivileged with read-only root filesystems and restricted Linux capabilities.
+
+The current HTTP surface contains only liveness and database-readiness checks. There is no IMAP, SMTP, Hermes, classification, message, or owner-data implementation yet.
 
 ## Design objective
 

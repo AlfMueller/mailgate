@@ -1,0 +1,9 @@
+{
+	admin off
+	auto_https off
+}
+
+:8080 {
+	reverse_proxy web:8000
+	header -Server
+}

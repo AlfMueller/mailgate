@@ -1,0 +1,4 @@
+# Runtime dependencies. Keep these aligned with pyproject.toml.
+Django==5.2.16
+gunicorn==26.0.0
+psycopg[binary]==3.3.4

@@ -1,5 +1,6 @@
-# GitHub Workflows (planned)
+# GitHub Workflows
 
-CI, secret scanning support, dependency review, tests, reproducible builds, and release artifact checks will be added when executable code and dependencies are introduced.
+- `ci.yml` compiles sources, runs tests and Django checks, validates Compose, and builds the image.
+- `dependency-review.yml` rejects pull requests that introduce dependencies with known high-severity vulnerabilities or denied licenses.
 
-No workflow should receive production mailbox credentials or unrestricted repository secrets for pull requests.
+Workflows receive no production mailbox credentials or unrestricted pull-request secrets.

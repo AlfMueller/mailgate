@@ -5,6 +5,7 @@
 *.secret
 *.secrets
 secrets/
+.local/
 *.pem
 *.key
 *.p12
@@ -56,3 +57,6 @@ Desktop.ini
 *.bak
 *.orig
 tmp/
+
+# Local image-generation workspace and exports
+bilder/
