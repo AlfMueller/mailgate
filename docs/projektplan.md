@@ -14,7 +14,7 @@ MailGate ist eine selbst gehostete Docker-Anwendung, die ein persönliches
 E-Mail-Postfach technisch und inhaltlich vorsortiert. Sie prüft klassische
 Spam- und Absendermerkmale, bereinigt fremde Inhalte, kategorisiert Nachrichten
 und gibt ausschließlich freigegebene Informationen über eine eng begrenzte
-Lese-Schnittstelle an den persönlichen Hermes-Assistenten weiter.
+Lese-Schnittstelle an den persönlichen KI-Agenten weiter.
 
 Jeder Anwender betreibt seine eigene Instanz. Es gibt keinen zentralen
 MailGate-Dienst, keine gemeinsame Kundendatenbank und standardmäßig keine
@@ -31,9 +31,9 @@ Das Projekt wird als **ein Inhalt in drei Formen** veröffentlicht:
 
 ## 2. Problem
 
-Ein KI-Assistent kann beim Lesen einer E-Mail nicht zuverlässig unterscheiden,
+Ein KI-Agent kann beim Lesen einer E-Mail nicht zuverlässig unterscheiden,
 ob ein Text Information oder eine an ihn gerichtete Anweisung ist. Eine fremde
-Nachricht kann deshalb versuchen, den Assistenten durch Prompt Injection zu
+Nachricht kann deshalb versuchen, den KI-Agenten durch Prompt Injection zu
 manipulieren.
 
 Gleichzeitig ist ein vollständiger Mail-Agent mit Lese-, Sende- und
@@ -44,14 +44,14 @@ technische Trennung:
 - E-Mails sind grundsätzlich nicht vertrauenswürdige Daten.
 - Die klassifizierende KI besitzt keine Werkzeuge und keine Mail-Zugangsdaten.
 - Ein fest programmiertes Regelwerk entscheidet über erlaubte Aktionen.
-- Hermes erhält nur bereinigte, freigegebene Daten über eine Read-only-API.
+- Der KI-Agent erhält nur bereinigte, freigegebene Daten über eine Read-only-API.
 - Unklare oder verdächtige Nachrichten werden nicht gelöscht, sondern
   quarantänisiert.
 
 ## 3. Produktversprechen
 
 > Installiere MailGate selbst, verbinde dein eigenes Postfach und erzeuge einen
-> begrenzten Schlüssel, mit dem ausschließlich dein Hermes freigegebene
+> begrenzten Schlüssel, mit dem ausschließlich dein KI-Agent freigegebene
 > Nachrichten lesen kann.
 
 Der erste Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
@@ -61,15 +61,15 @@ Der erste Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
 3. eigenes Postfach verbinden und Verbindung testen
 4. Klassifizierungsanbieter konfigurieren
 5. Testnachricht prüfen lassen
-6. Hermes-Schlüssel erzeugen
-7. erste freigegebene Nachricht in Hermes sehen
+6. KI-Agenten-Schlüssel erzeugen
+7. erste freigegebene Nachricht im KI-Agenten sehen
 
 ## 4. Zielgruppe
 
 - technisch interessierte Einzelpersonen
 - Maker und Entwickler mit einem öffentlichen Kontaktpostfach
 - Selbsthoster mit NAS, Mini-PC oder Linux-Server
-- Nutzer persönlicher Assistenten wie Hermes
+- Nutzer persönlicher KI-Agenten
 - kleine Projekte, Vereine oder Einzelunternehmen mit überschaubarem
   Mailaufkommen
 
@@ -87,8 +87,8 @@ Der erste Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
 - Quarantäne und manuelle Korrektur
 - austauschbarer, OpenAI-kompatibler Klassifizierungsanbieter
 - streng strukturierte KI-Ausgabe
-- Read-only-REST-API für Hermes
-- optionaler Read-only-MCP-Adapter oder Hermes-Skill
+- Read-only-REST-API für KI-Agenten
+- optionaler Read-only-MCP- oder KI-Agenten-Adapter
 - API-Schlüssel mit Berechtigungen, Ablaufdatum und Widerruf
 - Auditprotokoll ohne unnötige Speicherung sensibler Inhalte
 - deutsch- und englischfähige Oberfläche; Deutsch beginnt als
@@ -98,7 +98,7 @@ Der erste Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
 
 - kein zentraler MailGate-Cloud-Dienst
 - kein Zugriff auf das private Hauptpostfach des Betreibers
-- kein autonomes Antworten durch Hermes
+- kein autonomes Antworten durch den KI-Agenten
 - kein sofortiges, KI-gesteuertes Löschen
 - kein Öffnen von Links oder Nachladen externer Bilder
 - keine automatische Ausführung von Mail-Anweisungen
@@ -113,7 +113,7 @@ Der erste Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
 - Inhalt eingehender Nachrichten
 - private Weiterleitungsadresse
 - Schlüssel des Klassifizierungsanbieters
-- MailGate-Schlüssel für Hermes
+- MailGate-Schlüssel für den KI-Agenten
 - Kategorisierungs- und Auditdaten
 
 ### Angreifbare Eingaben
@@ -130,11 +130,11 @@ Der erste Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
 
 - getrennte Container und getrennte Docker-Netzwerke
 - nicht-root Prozesse und minimale Linux-Berechtigungen
-- kein direkter Netzwerkpfad von Hermes zum IMAP-Server
-- keine Mail-Zugangsdaten im Hermes-Container
+- kein direkter Netzwerkpfad vom KI-Agenten zum IMAP-Server
+- keine Mail-Zugangsdaten im KI-Agenten-Container
 - festes, validiertes Datenschema zwischen KI und Regelwerk
 - feste Empfänger und fest erlaubte Aktionen im Programmcode
-- Read-only-Hermes-API mit minimalem Berechtigungsumfang
+- Read-only-KI-Agenten-API mit minimalem Berechtigungsumfang
 - Quarantäne und zeitverzögerte Löschung
 
 Prompt-Injection-Erkennung, Systemprompts und Inhaltsfilter sind zusätzliche
@@ -247,7 +247,7 @@ received
   → scanned
   → approved
        ↘ forwarded
-       ↘ exposed_to_hermes
+       ↘ exposed_to_agent
 
 jeder Schritt kann führen zu:
   → needs_review
@@ -259,9 +259,9 @@ Der Begriff `approved` bedeutet, dass die Nachricht die konfigurierten Regeln
 erfüllt. Er bedeutet nicht, dass ihr Inhalt objektiv wahr oder vollständig
 ungefährlich ist.
 
-## 9. Hermes-Schnittstelle
+## 9. KI-Agenten-Schnittstelle
 
-Hermes bekommt niemals IMAP-, SMTP- oder Datenbankzugriff. MailGate erzeugt
+Der KI-Agent erhält niemals IMAP-, SMTP- oder Datenbankzugriff. MailGate erzeugt
 einen eigenen Schlüssel mit dem minimalen Scope:
 
 ```text
@@ -292,11 +292,11 @@ Verwendungszeitpunkt und kann sofort widerrufen werden.
 Ein Schlüssel allein identifiziert nur seinen Besitzer. Deshalb gilt:
 
 - API standardmäßig nur im privaten Docker-Netzwerk bereitstellen
-- bei getrenntem Hermes Tailscale, WireGuard oder mTLS verwenden
+- bei getrennt betriebenem KI-Agenten Tailscale, WireGuard oder mTLS verwenden
 - optional feste Quell-IP konfigurieren
 - jeden Zugriff auditieren
 
-Ein optionaler Hermes-Skill oder MCP-Adapter bildet genau diese lesenden
+Ein optionaler KI-Agenten- oder MCP-Adapter bildet genau diese lesenden
 Endpunkte ab und stellt keine weiteren Mail-Werkzeuge bereit.
 
 ## 10. Technische Architektur
@@ -311,7 +311,7 @@ flowchart LR
     Policy --> DB["PostgreSQL"]
     DB --> UI["Django Weboberfläche"]
     DB --> API["Read-only API"]
-    API --> Hermes["Persönlicher Hermes"]
+    API --> Agent["Persönlicher KI-Agent"]
     Policy --> Quarantine["Quarantäne"]
 ```
 
@@ -323,7 +323,7 @@ flowchart LR
 | `worker` | IMAP, Aufbereitung, Klassifizierung | Mailprovider und freigegebener Modellprovider |
 | `db` | PostgreSQL | nur internes Docker-Netzwerk |
 | `proxy` | HTTPS und lokale Webadresse | eingehendes HTTPS |
-| `hermes-adapter` | optionaler Read-only-Adapter | nur MailGate und Hermes |
+| `agent-adapter` | optionaler Read-only-Adapter | nur MailGate und KI-Agent |
 
 Web und Worker werden aus demselben versionierten Image gebaut, laufen aber
 als getrennte Prozesse und mit unterschiedlichen Netzwerkrechten.
@@ -350,8 +350,8 @@ als getrennte Prozesse und mit unterschiedlichen Netzwerkrechten.
 5. Klassifizierungsanbieter konfigurieren
 6. Testnachricht analysieren
 7. Regeln und Aufbewahrungsdauer bestätigen
-8. Hermes-Schlüssel erzeugen
-9. Hermes-Konfiguration herunterladen
+8. KI-Agenten-Schlüssel erzeugen
+9. KI-Agenten-Konfiguration herunterladen
 
 ### Hauptbereiche
 
@@ -361,7 +361,7 @@ als getrennte Prozesse und mit unterschiedlichen Netzwerkrechten.
 - Quarantäne mit Wiederherstellung
 - Regeln, Kategorien und Absenderlisten
 - Postfach- und Provider-Einstellungen
-- Hermes-Schlüssel und Zugriffsprotokoll
+- KI-Agenten-Schlüssel und Zugriffsprotokoll
 - Systemzustand, Updates und Diagnose
 
 ## 12. Datenschutz und Datensparsamkeit
@@ -415,7 +415,7 @@ MailGate arbeitet im Zweifel defensiv:
 - gefälschte Support- und Rechnungsnachrichten
 - Link- und Bild-basierte Datenabflussversuche
 - manipulierte Freigabegründe
-- gestohlener oder abgelaufener Hermes-Schlüssel
+- gestohlener oder abgelaufener KI-Agenten-Schlüssel
 - Versuch, nicht erlaubte API-Methoden aufzurufen
 
 ### Pilotbetrieb
@@ -437,7 +437,7 @@ Aktueller DNS-Ausgangspunkt:
 ### Phase 0: Entscheidungen und Bedrohungsmodell
 
 - Projektname und Repository-Namen festhalten (**entschieden: MailGate / AlfMueller/mailgate**)
-- Lizenz auswählen
+- Lizenz auswählen (**entschieden: AGPL-3.0-only**)
 - Sicherheitsmodell und Nicht-Ziele festschreiben
 - Referenz-Mailprovider Hostpoint konfigurieren
 - Beispieldaten ohne reale personenbezogene Inhalte erstellen
@@ -480,15 +480,15 @@ auslösen.
 **Abnahme:** Ein neuer Nutzer kann MailGate ohne Bearbeiten von Dateien
 einrichten.
 
-### Phase 4: Hermes-Integration
+### Phase 4: KI-Agenten-Integration
 
 - Read-only-API
 - API-Schlüssel, Scopes, Ablauf und Widerruf
-- optionaler Hermes-Skill oder MCP-Adapter
+- optionaler KI-Agenten- oder MCP-Adapter
 - Zugriff nur auf freigegebene, bereinigte Daten
 - private Netzwerkvariante dokumentieren
 
-**Abnahme:** Hermes kann freigegebene Zusammenfassungen lesen, aber keine
+**Abnahme:** Der KI-Agent kann freigegebene Zusammenfassungen lesen, aber keine
 Mailaktion ausführen und keine Rohdaten abrufen.
 
 ### Phase 5: Härtung und Pilot
@@ -531,7 +531,7 @@ mailgate/
 ├── docs/
 │   ├── architecture.md
 │   ├── threat-model.md
-│   ├── hermes-integration.md
+│   ├── ai-agent-integration.md
 │   └── providers/
 ├── deploy/
 │   └── docker-compose.yml
@@ -550,7 +550,7 @@ mailgate/
 2. Screenshot der Oberfläche
 3. Was MailGate kann und bewusst nicht kann
 4. Installation in fünf Schritten
-5. Hermes verbinden
+5. KI-Agenten verbinden
 6. Architekturdiagramm
 7. Sicherheitsmodell
 8. unterstützte Provider
@@ -577,8 +577,8 @@ Ein einziges, reproduzierbares Szenario trägt alle drei Veröffentlichungen:
 3. Eine dritte Mail enthält eine versteckte HTML-Anweisung und gefälschte
    Authentifizierungs-Header.
 4. MailGate zeigt SPF, DKIM, DMARC, Inhaltsrisiko und Kategorie.
-5. Nur die echte Projektanfrage wird für Hermes freigegeben.
-6. Hermes kann die freigegebene Zusammenfassung lesen.
+5. Nur die echte Projektanfrage wird für den KI-Agenten freigegeben.
+6. Der KI-Agent kann die freigegebene Zusammenfassung lesen.
 7. Der Versuch, Quarantäne oder Löschfunktionen aufzurufen, wird technisch
    abgewiesen.
 
@@ -608,7 +608,7 @@ Gliederung:
 5. SPF, DKIM, DMARC und ARC vor der KI
 6. Kategorien und deterministische Regeln
 7. Docker-Aufbau und grafische Oberfläche
-8. Hermes erhält nur eine Read-only-Schnittstelle
+8. Der KI-Agent erhält nur eine Read-only-Schnittstelle
 9. Der Angriffstest
 10. Ergebnis, Grenzen, Download und GitHub-Link
 
@@ -633,7 +633,7 @@ Vorgesehener Ablauf:
 3. **Gefahr:** E-Mail-Inhalt ist keine vertrauenswürdige Anweisung
 4. **Bau:** Docker, Filterstufen und Regelwerk
 5. **Technik:** SPF, DKIM, DMARC, ARC und Sanitizer
-6. **Hermes:** nur freigegebene Zusammenfassungen per API
+6. **KI-Agent:** nur freigegebene Zusammenfassungen per API
 7. **Test:** drei vorbereitete Mails gegeneinander antreten lassen
 8. **Ergebnis:** zeigen, was weitergeleitet und was quarantänisiert wurde
 9. **Ehrliche Grenze:** kein vollständiger Schutz, aber begrenzter Schaden
@@ -647,7 +647,7 @@ Vorgesehener Ablauf:
 - drei anonymisierte Demo-Mails
 - ein Screenshot der Übersicht
 - ein Screenshot der technischen Prüfergebnisse
-- ein Screenshot der Hermes-Zugriffsrechte
+- ein Screenshot der KI-Agenten-Zugriffsrechte
 - ein kurzer Bildschirmmitschnitt des Angriffstests
 - dieselben Versionsnummern und Ergebniszahlen auf allen Plattformen
 
@@ -671,8 +671,8 @@ Ein endgültiges Logo entsteht erst nach Festlegung des Projektnamens.
 ### Produkt
 
 - Installation durch eine fremde Testperson in höchstens 15 Minuten
-- keine Mail-Zugangsdaten im Hermes-Container
-- keine Schreiboperation über die Hermes-API
+- keine Mail-Zugangsdaten im KI-Agenten-Container
+- keine Schreiboperation über die KI-Agenten-API
 - unbekannte oder ungültige Modellantworten führen nie zum Löschen
 - reproduzierbare Klassifizierung der Demo-Mails
 - verständliche Begründung jeder Quarantäneentscheidung
@@ -689,8 +689,8 @@ Ein endgültiges Logo entsteht erst nach Festlegung des Projektnamens.
 ## 20. Offene Entscheidungen
 
 - Projekt- und Repository-Name: **entschieden – MailGate / AlfMueller/mailgate**
-- Lizenz: beispielsweise Apache-2.0 für breite Nutzung oder AGPL-3.0 für
-  Offenheit auch bei gehosteten Änderungen
+- Lizenz: **entschieden – AGPL-3.0-only** für Offenheit auch bei gehosteten
+  Änderungen
 - genauer Klassifizierungsanbieter der Referenzinstallation
 - lokales Modell bereits in Version 1 oder erst später
 - REST-only oder zusätzlicher MCP-Adapter in Version 1
@@ -704,7 +704,7 @@ Ein endgültiges Logo entsteht erst nach Festlegung des Projektnamens.
 Vor dem ersten Code werden in dieser Reihenfolge entschieden:
 
 1. endgültiger Name und Repository-Name (**erledigt**)
-2. Lizenz (**offen; vor dem ersten Anwendungscode zu entscheiden**)
+2. Lizenz (**erledigt: AGPL-3.0-only**)
 3. genaue Grenzen der Version 1
 4. Bedrohungsmodell und Datenfluss
 5. Wireframes für Einrichtungsassistent, Übersicht und Nachrichtendetails

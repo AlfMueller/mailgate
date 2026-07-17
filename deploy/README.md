@@ -1,5 +1,5 @@
-# Deployment (planned)
+# Deployment
 
-This directory is reserved for the future reference Docker Compose deployment. There is no deployable stack yet.
+The first reference Compose foundation is stored at the repository root as `compose.yaml`, so local development can use `docker compose up` without additional flags. See [docs/development.md](../docs/development.md).
 
-The deployment design will separate process privileges, networks, secrets, and writable storage before Compose files are published.
+This is not a production release: it provides PostgreSQL, migrations, health endpoints, and an inert worker process. Mail ingestion, the setup UI, HTTPS proxy, backup workflow, and release images are not implemented yet.

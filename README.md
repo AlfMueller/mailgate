@@ -1,26 +1,37 @@
 # MailGate
 
-> **Deutsch:** MailGate wird ein selbst gehostetes E-Mail-Sicherheitstor für den persönlichen Hermes-Assistenten. Es prüft und bereinigt Nachrichten und gibt ausschließlich freigegebene Inhalte über eine streng begrenzte Lese-API weiter. Das Projekt befindet sich noch in der Planungsphase; es gibt noch keine installierbare Anwendung.
+> **Deutsch:** MailGate wird ein selbst gehostetes E-Mail-Sicherheitstor für persönliche KI-Agenten. Es prüft und bereinigt Nachrichten und gibt ausschließlich freigegebene Inhalte über eine streng begrenzte Lese-API weiter. Das Projekt befindet sich noch in der Planungsphase; es gibt noch keine installierbare Anwendung.
 
-MailGate is a planned open-source, self-hosted Docker application that places a deliberately narrow security boundary between a personal mailbox and an AI assistant.
+MailGate is a planned open-source, self-hosted Docker application that places a deliberately narrow security boundary between a personal mailbox and an AI agent.
 
-Each installation belongs to one owner and connects only to that owner's mailboxes. MailGate will inspect authentication signals such as SPF, DKIM, DMARC, and ARC, safely normalize message content, assess security risks, categorize messages, and apply deterministic policy rules. Only sanitized and explicitly approved information may be exposed to Hermes.
+Each installation belongs to one owner and connects only to that owner's mailboxes. MailGate will inspect authentication signals such as SPF, DKIM, DMARC, and ARC, safely normalize message content, assess security risks, categorize messages, and apply deterministic policy rules. Only sanitized and explicitly approved information may be exposed to the configured AI agent.
 
 ## Project status
 
-**Phase 0 — security and product decisions.** This repository currently contains planning and security documentation only. It does not yet contain an application, Docker image, or deployable Compose stack.
+**Phase 1 foundation — implementation started.** The repository now contains a minimal Django web process, a separate inert worker process, PostgreSQL, a Caddy ingress boundary, file-backed Compose secrets, container hardening, and health checks. It does not yet ingest or classify mail and is not a production release.
 
-Application development will not start until the threat model, process privileges, data flow, version-one scope, and project license have been agreed and recorded.
+The threat model, initial process privileges, data flow, version-one scope, and AGPL-3.0 license baseline are recorded. The first implementation phase starts with the technical mail-filter foundation and no AI dependency.
+
+## Run the development foundation
+
+Prerequisites: Docker Engine with Docker Compose and Python 3.12 or newer for the one-time local secret generator.
+
+```text
+python scripts/create_local_secrets.py
+docker compose up --build -d
+```
+
+Then check `http://127.0.0.1:8080/health/live` and `/health/ready`. This starts only the foundation; no mailbox should be connected yet. See [docs/development.md](docs/development.md) for operation and validation details.
 
 ## Core security boundaries
 
 - Email content is untrusted data, never an instruction channel.
-- Hermes never receives IMAP, SMTP, database, deletion, move, or write access.
+- The AI agent never receives IMAP, SMTP, database, deletion, move, or write access.
 - The classifier receives no mailbox credentials and has no tools.
 - Model output is treated as untrusted input and must match a strict schema.
 - Only deterministic application policy can change message state.
 - Suspicious, ambiguous, or failed processing is quarantined or held for review; it is not silently deleted.
-- The Hermes API is read-only and exposes only sanitized, approved data with the minimum scope `messages:read:approved`.
+- The AI-agent API is read-only and exposes only sanitized, approved data with the minimum scope `messages:read:approved`.
 - Each installation manages only its owner's data; there is no central MailGate customer database.
 - Telemetry is disabled by default.
 
@@ -40,11 +51,11 @@ flowchart LR
     Policy --> DB["PostgreSQL"]
     DB --> Web["Django web UI"]
     DB --> API["Restricted read-only API"]
-    API --> Hermes["Owner's Hermes assistant"]
+    API --> Agent["Owner's AI agent"]
     Policy --> Quarantine["Quarantine / manual review"]
 ```
 
-The planned reference deployment uses separate `web`, `worker`, `db`, and `proxy` containers with distinct responsibilities and network access. An optional Hermes adapter may be added later, but it must not broaden the API's capabilities.
+The planned reference deployment uses separate `web`, `worker`, `db`, and `proxy` containers with distinct responsibilities and network access. An optional AI-agent adapter may be added later, but it must not broaden the API's capabilities.
 
 ## Planned scope
 
@@ -57,7 +68,7 @@ MailGate aims to provide:
 - authentication and anti-spam signal evaluation;
 - quarantine, review, categories, priorities, and deterministic rules;
 - an interchangeable OpenAI-compatible classification provider;
-- revocable, expiring, rate-limited read-only Hermes credentials;
+- revocable, expiring, rate-limited read-only AI-agent credentials;
 - audit records that avoid unnecessary sensitive content;
 - German and English user interfaces.
 
@@ -67,8 +78,13 @@ MailGate does **not** claim to eliminate prompt injection. Prompt detection and 
 
 ```text
 mailgate/
-├── app/                  # Planned Django web UI and read-only API
-├── worker/               # Planned mail ingestion and inspection worker
+├── compose.yaml          # Reference development stack
+├── Dockerfile            # Shared non-root web/worker image
+├── pyproject.toml        # Python project and direct dependency metadata
+├── requirements.lock     # Hash-locked Python dependency graph
+├── app/                  # Django foundation; future UI and read-only API
+├── worker/               # Worker foundation; future mail inspection
+├── scripts/              # Safe local development helpers
 ├── tests/
 │   ├── fixtures/         # Synthetic, non-personal test messages
 │   └── adversarial/      # Prompt-injection and parser security cases
@@ -78,17 +94,17 @@ mailgate/
 │   ├── architecture.md
 │   ├── threat-model.md
 │   └── projektplan.md
-├── deploy/               # Planned Docker Compose deployment files
-└── .github/workflows/    # CI and security automation once code exists
+├── deploy/               # Proxy configuration and deployment guidance
+└── .github/workflows/    # CI and dependency review automation
 ```
 
 ## Development roadmap
 
-1. Finalize the license, version-one boundaries, threat model, and data flow.
+1. Completed: finalize the license, initial boundaries, threat model, and data flow.
 2. Build the technical mail filter without AI: ingestion, authentication checks, sanitization, persistence, quarantine, and idempotency.
 3. Add schema-constrained classification and deterministic policies.
 4. Build the graphical setup and review interface.
-5. Add and test the minimal read-only Hermes integration.
+5. Add and test the minimal read-only AI-agent integration.
 6. Harden containers, secrets, backups, audit behavior, and adversarial tests before a public release.
 
 The detailed working plan is available in German in [docs/projektplan.md](docs/projektplan.md).
@@ -99,8 +115,8 @@ Do not open a public issue for a suspected vulnerability or include real mailbox
 
 ## Contributing
 
-The project is not accepting code contributions while the license and contribution terms remain undecided. Design feedback and threat-model review are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+Design feedback, threat-model review, documentation, tests, and focused code contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-**No open-source license has been selected yet.** Until a license file is added, copyright law applies and no permission is granted to use, modify, or redistribute the contents beyond rights provided directly by GitHub's terms. The decision and its criteria are tracked in [docs/decisions/0001-project-license.md](docs/decisions/0001-project-license.md).
+MailGate is licensed under the [GNU Affero General Public License v3.0](LICENSE). The accepted decision and its consequences are recorded in [docs/decisions/0001-project-license.md](docs/decisions/0001-project-license.md).

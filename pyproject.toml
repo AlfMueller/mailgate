@@ -1,0 +1,39 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mailgate"
+version = "0.1.0.dev0"
+description = "Self-hosted email security gateway with a restricted read-only AI-agent API"
+readme = "README.md"
+requires-python = ">=3.13,<3.15"
+license = "AGPL-3.0-only"
+authors = [
+  { name = "Alf Müller" },
+]
+classifiers = [
+  "Development Status :: 2 - Pre-Alpha",
+  "Framework :: Django :: 5.2",
+  "License :: OSI Approved :: GNU Affero General Public License v3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+dependencies = [
+  "Django==5.2.16",
+  "gunicorn==26.0.0",
+  "psycopg[binary]==3.3.4",
+]
+
+[project.urls]
+Homepage = "https://github.com/AlfMueller/mailgate"
+Issues = "https://github.com/AlfMueller/mailgate/issues"
+Repository = "https://github.com/AlfMueller/mailgate.git"
+
+[tool.setuptools.packages.find]
+where = ["app", "worker"]
+include = ["mailgate*"]
+
+[tool.setuptools]
+license-files = ["LICENSE"]

@@ -1,0 +1,150 @@
+name: mailgate
+
+x-app-environment: &app-environment
+  MAILGATE_ALLOWED_HOSTS: ${MAILGATE_ALLOWED_HOSTS:-localhost,127.0.0.1,[::1]}
+  MAILGATE_DATABASE_ENGINE: postgresql
+  MAILGATE_DATABASE_HOST: db
+  MAILGATE_DATABASE_NAME: ${MAILGATE_DATABASE_NAME:-mailgate}
+  MAILGATE_DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
+  MAILGATE_DATABASE_PORT: "5432"
+  MAILGATE_DATABASE_USER: ${MAILGATE_DATABASE_USER:-mailgate}
+  MAILGATE_ENVIRONMENT: ${MAILGATE_ENVIRONMENT:-development}
+  MAILGATE_SECRET_KEY_FILE: /run/secrets/django_secret_key
+
+x-app-hardening: &app-hardening
+  cap_drop:
+    - ALL
+  read_only: true
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,size=64m
+
+services:
+  db:
+    image: postgres:17.10-bookworm@sha256:4f736ae292687621d4dbe0d499ffd024a36bd2ee7d8ca6f2ccd4c800f047b394
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${MAILGATE_DATABASE_NAME:-mailgate}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_USER: ${MAILGATE_DATABASE_USER:-mailgate}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    networks:
+      - database
+    secrets:
+      - postgres_password
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  migrate:
+    <<: *app-hardening
+    build:
+      context: .
+    command: ["python", "app/manage.py", "migrate", "--noinput"]
+    depends_on:
+      db:
+        condition: service_healthy
+    environment: *app-environment
+    networks:
+      - database
+    restart: "no"
+    secrets:
+      - django_secret_key
+      - postgres_password
+
+  web:
+    <<: *app-hardening
+    build:
+      context: .
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment: *app-environment
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - application
+      - database
+    secrets:
+      - django_secret_key
+      - postgres_password
+
+  proxy:
+    image: caddy:2.11.4-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
+    restart: unless-stopped
+    user: "10001:10001"
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    command: ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
+    depends_on:
+      web:
+        condition: service_healthy
+    environment:
+      XDG_CONFIG_HOME: /tmp/config
+      XDG_DATA_HOME: /tmp/data
+    networks:
+      - application
+      - frontend
+    ports:
+      - "127.0.0.1:${MAILGATE_HTTP_PORT:-8080}:8080"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,size=32m,uid=10001,gid=10001
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+
+  worker:
+    <<: *app-hardening
+    build:
+      context: .
+    command: ["python", "-m", "mailgate_worker"]
+    restart: unless-stopped
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment: *app-environment
+    healthcheck:
+      test: ["CMD", "python", "-m", "mailgate_worker", "--check-once"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - database
+      - worker_egress
+    secrets:
+      - django_secret_key
+      - postgres_password
+
+networks:
+  application:
+    internal: true
+  database:
+    internal: true
+  frontend: {}
+  worker_egress: {}
+
+secrets:
+  django_secret_key:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/django_secret_key
+  postgres_password:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_password
+
+volumes:
+  postgres_data: {}

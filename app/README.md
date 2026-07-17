@@ -1,5 +1,10 @@
-# Web Application (planned)
+# Web Application
 
-This directory is reserved for the future Django web interface and restricted read-only API. No application code will be added until the Phase 0 security, scope, and license decisions are complete.
+The first implementation foundation lives here:
 
-The web process must not receive direct IMAP or SMTP access.
+- `manage.py` provides Django management commands;
+- `mailgate/settings.py` reads explicit, file-backed secrets and database settings;
+- `mailgate/health.py` exposes content-minimal liveness and readiness endpoints;
+- `mailgate/middleware.py` applies restrictive response security headers.
+
+The web process has no IMAP or SMTP code and receives no mailbox credentials. The Compose deployment attaches it only to internal application and database networks. A separate, unprivileged Caddy proxy publishes the current HTTP endpoint on loopback.
