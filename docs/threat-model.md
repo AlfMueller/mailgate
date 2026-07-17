@@ -1,6 +1,6 @@
 # Threat Model
 
-Status: initial Phase 0 baseline, 17 July 2026. This document must be revised as implementation choices are made.
+Status: active release-candidate baseline, revised 17 July 2026. Open mitigations are tracked in `docs/release-gates.md`.
 
 ## Security goal
 
@@ -43,7 +43,7 @@ The policy engine permits only predefined state transitions. The classifier reco
 
 ### Database to web and API
 
-Administrative owner sessions and AI-agent credentials are separate. An AI-agent credential is hashed at rest, shown once, revocable, expiring, rate-limited, and limited to approved sanitized data. It does not authorize raw content, quarantine, configuration, or any write.
+Administrative owner sessions and AI-agent credentials are separate. An AI-agent credential is hashed at rest, shown once, revocable, rate-limited, and limited to approved sanitized data. Tokens expire by default; the owner may explicitly create one without automatic expiry for integrations that cannot rotate credentials. It does not authorize raw content, quarantine, configuration, or any write.
 
 ### MailGate API to an AI agent
 
@@ -97,7 +97,7 @@ These are architectural constraints. Adding any such capability requires a new t
 
 ## Known residual risks
 
-SPF, DKIM, DMARC, and ARC establish limited transport and domain properties; they do not prove that content is truthful or safe. Sanitization and prompt-injection detection can fail. Approved summaries can still contain misleading information. The primary control is therefore least privilege: even a successful content attack must not grant the AI agent mailbox actions or access to unapproved data.
+SPF, DKIM, DMARC, and ARC establish limited transport and domain properties; they do not prove that content is truthful or safe. Sanitization and prompt-injection detection can fail. PDF and other attachment bytes are deliberately discarded rather than interpreted, so an attachment-injection test demonstrates containment, not detection. Approved summaries can still contain misleading information. Tokens without automatic expiry increase the exposure window if stolen and depend on deliberate owner revocation. The primary control is therefore least privilege: even a successful content attack must not grant the AI agent mailbox actions or access to unapproved data.
 
 ## Out of scope for the initial version
 

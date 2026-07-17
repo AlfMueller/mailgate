@@ -1,6 +1,7 @@
 # Contributing to MailGate
 
-MailGate is currently in Phase 0: requirements, security boundaries, architecture, and governance decisions.
+MailGate is currently a technical release candidate, not a production release. Production release
+gates are tracked in `docs/release-gates.md`.
 
 ## Contribution policy
 
@@ -18,3 +19,10 @@ Before proposing a change:
 6. Keep commits focused and ensure the available checks pass.
 
 Source files should use the SPDX identifier `AGPL-3.0-only` where a per-file identifier is appropriate. Dependency additions must be license-compatible and justified.
+
+## Translations
+
+English is the source language and German is the first additional language. Translation catalogs
+are reviewable text files, so a correction or a new language can be contributed with a normal
+GitHub pull request. Follow [docs/translating.md](docs/translating.md), preserve interpolation
+markers, and never put real mail or personal data into examples.
