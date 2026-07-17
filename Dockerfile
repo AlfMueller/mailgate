@@ -7,7 +7,7 @@ ENV CGO_ENABLED=0
 RUN GOBIN=/out go install github.com/caddyserver/caddy/v2/cmd/caddy@v2.11.4 \
     && test -x /out/caddy
 
-FROM python:3.13.14-slim-bookworm@sha256:9d7f287598e1a5a978c015ee176d8216435aaf335ed69ac3c38dd1bbb10e8d64
+FROM python:3.14.6-slim-bookworm@sha256:86f975aca15cf04a40b399eebede9aea7c82eae084d1f1a0a6ef6bcaae871a30
 
 ARG APP_UID=10001
 ARG APP_GID=10001
