@@ -15,8 +15,9 @@ MailGate is a release candidate, not a production release, until every item belo
   stale sync status after credential rotation or disablement.
 - [x] Independent DKIM verification and documented provider trust presets.
 - [x] Key rotation, encrypted backup/restore, retention/export/delete and rollback drills are automated and tested.
-- [ ] Browser E2E, PostgreSQL integration, fuzzing, SAST, secret/history scan, container CVE scan and SBOM/provenance/signing gates are green.
-- [ ] German UI and accessibility review are complete.
+- [x] Browser E2E, PostgreSQL integration, fuzzing, SAST, secret/history scan, container CVE scan,
+  SBOM and protected digest/provenance release gates are green.
+- [x] German UI and accessibility review are complete.
 - [ ] A person unfamiliar with the project completes installation in 15 minutes.
 - [ ] The isolated public pilot mailbox runs for at least four weeks with documented false-positive/negative review.
 

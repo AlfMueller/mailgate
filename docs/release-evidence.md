@@ -7,7 +7,8 @@ Evidence was collected on 17 July 2026 from branch `codex/production-ready-v1`.
 
 - Locked dependency installation succeeded.
 - Ruff lint and format checks passed for `app`, `worker`, `scripts`, and `tests`.
-- Django ran 126 tests successfully with two expected platform/opt-in skips.
+- Django ran 128 tests successfully with three expected Windows platform/opt-in skips; Linux CI
+  exercised the directory-link protection and the dedicated browser journey separately.
 - Django system checks, translation compilation, migration drift checks, and Python bytecode
   compilation passed.
 - A disposable browser journey passed against a fresh Compose project: owner setup, English/German
@@ -32,9 +33,12 @@ Evidence was collected on 17 July 2026 from branch `codex/production-ready-v1`.
 
 ## GitHub evidence
 
-The pull request must show green CI, browser E2E, CodeQL, full-history secret scanning, container/SBOM
-jobs, and review before an RC tag is created. Release tags build once, scan the exact candidate
-digest, publish SPDX and CycloneDX SBOMs, add GitHub build provenance, then promote that same digest.
+Pull request 2 is green for Python 3.13/3.14, Compose/PostgreSQL boundaries, browser E2E, CodeQL,
+dependency review, full-history secret scanning, and the container/SBOM job. `main` is protected by
+those exact required checks. The `release` environment requires explicit maintainer approval and
+accepts only `v*` refs. Release tags re-run the full CI/security workflows for the exact tag commit,
+require that commit to belong to `main`, build once, scan the exact candidate digest, publish SPDX
+and CycloneDX SBOMs, add GitHub build provenance, and then promote that same digest.
 
 ## External acceptance still required
 
