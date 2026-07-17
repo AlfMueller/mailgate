@@ -34,7 +34,10 @@ The release-candidate implementation includes:
 This is deliberately **not yet labelled production-ready**. The technical V1 release-candidate gates
 are implemented and tested, including an encrypted restore drill and credential-key rotation. An
 independent 15-minute installation acceptance and the required four-week isolated pilot remain open.
-See [release gates](docs/release-gates.md) and [release evidence](docs/release-evidence.md).
+The current RC requires manual approval of every message; public V1 additionally requires the
+versioned safe auto-approval pipeline and a measured automation rate of at least 70% of eligible
+pilot messages. See the [automation plan](docs/automation-plan.md),
+[release gates](docs/release-gates.md) and [release evidence](docs/release-evidence.md).
 
 ## Quick start for local evaluation
 
