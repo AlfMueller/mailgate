@@ -10,7 +10,7 @@ Each installation belongs to one owner and connects only to that owner's mailbox
 
 **Phase 0 — security and product decisions.** This repository currently contains planning and security documentation only. It does not yet contain an application, Docker image, or deployable Compose stack.
 
-Application development will not start until the threat model, process privileges, data flow, version-one scope, and project license have been agreed and recorded.
+The threat model, initial process privileges, data flow, version-one scope, and AGPL-3.0 license baseline are now recorded. The first implementation phase is starting with the technical mail-filter foundation and no AI dependency.
 
 ## Core security boundaries
 
@@ -99,8 +99,8 @@ Do not open a public issue for a suspected vulnerability or include real mailbox
 
 ## Contributing
 
-The project is not accepting code contributions while the license and contribution terms remain undecided. Design feedback and threat-model review are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
+Design feedback, threat-model review, documentation, tests, and focused code contributions are welcome; see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## License
 
-**No open-source license has been selected yet.** Until a license file is added, copyright law applies and no permission is granted to use, modify, or redistribute the contents beyond rights provided directly by GitHub's terms. The decision and its criteria are tracked in [docs/decisions/0001-project-license.md](docs/decisions/0001-project-license.md).
+MailGate is licensed under the [GNU Affero General Public License v3.0](LICENSE). The accepted decision and its consequences are recorded in [docs/decisions/0001-project-license.md](docs/decisions/0001-project-license.md).

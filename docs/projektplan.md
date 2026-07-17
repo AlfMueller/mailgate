@@ -437,7 +437,7 @@ Aktueller DNS-Ausgangspunkt:
 ### Phase 0: Entscheidungen und Bedrohungsmodell
 
 - Projektname und Repository-Namen festhalten (**entschieden: MailGate / AlfMueller/mailgate**)
-- Lizenz auswählen
+- Lizenz auswählen (**entschieden: AGPL-3.0-only**)
 - Sicherheitsmodell und Nicht-Ziele festschreiben
 - Referenz-Mailprovider Hostpoint konfigurieren
 - Beispieldaten ohne reale personenbezogene Inhalte erstellen
@@ -689,8 +689,8 @@ Ein endgültiges Logo entsteht erst nach Festlegung des Projektnamens.
 ## 20. Offene Entscheidungen
 
 - Projekt- und Repository-Name: **entschieden – MailGate / AlfMueller/mailgate**
-- Lizenz: beispielsweise Apache-2.0 für breite Nutzung oder AGPL-3.0 für
-  Offenheit auch bei gehosteten Änderungen
+- Lizenz: **entschieden – AGPL-3.0-only** für Offenheit auch bei gehosteten
+  Änderungen
 - genauer Klassifizierungsanbieter der Referenzinstallation
 - lokales Modell bereits in Version 1 oder erst später
 - REST-only oder zusätzlicher MCP-Adapter in Version 1
@@ -704,7 +704,7 @@ Ein endgültiges Logo entsteht erst nach Festlegung des Projektnamens.
 Vor dem ersten Code werden in dieser Reihenfolge entschieden:
 
 1. endgültiger Name und Repository-Name (**erledigt**)
-2. Lizenz (**offen; vor dem ersten Anwendungscode zu entscheiden**)
+2. Lizenz (**erledigt: AGPL-3.0-only**)
 3. genaue Grenzen der Version 1
 4. Bedrohungsmodell und Datenfluss
 5. Wireframes für Einrichtungsassistent, Übersicht und Nachrichtendetails

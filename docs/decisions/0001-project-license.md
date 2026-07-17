@@ -1,7 +1,8 @@
 # ADR 0001: Select the Project License
 
-- Status: **Proposed — decision required before application code**
+- Status: **Accepted**
 - Date opened: 17 July 2026
+- Date decided: 17 July 2026
 - Decision owners: project maintainers
 
 ## Context
@@ -35,18 +36,17 @@ Publishing a repository without a license does not make its contents open source
 - clarity for Docker images, optional adapters, documentation, and example configuration;
 - legal review appropriate to the maintainer's risk tolerance.
 
-## Current consequence
+## Decision
 
-- No `LICENSE` file is present.
-- README and contribution guidance must clearly state that the license is undecided.
-- Code contributions are paused to avoid ambiguous inbound rights.
-- Planning documents may be viewed and discussed, but are not offered under an open-source license yet.
+MailGate is licensed under the **GNU Affero General Public License v3.0 only** (`AGPL-3.0-only`). The network-use provision is intentional: users of a modified MailGate service must be able to obtain the corresponding source code.
 
-## Required follow-up
+## Consequences
 
-1. Choose and record one license (or a precisely reviewed multi-license model).
-2. Verify dependency-license compatibility before adding dependencies.
-3. Add the complete canonical license text as `LICENSE`.
-4. Add copyright and SPDX guidance.
-5. Define contribution terms and update `CONTRIBUTING.md` and README.
-6. Only then begin application implementation and accept code contributions.
+- The complete canonical license text is stored in `LICENSE`.
+- Application source files should identify the license as `AGPL-3.0-only` where appropriate.
+- Contributions are accepted under the same license; contribution guidance must say so explicitly.
+- Every dependency must be checked for compatibility with AGPL-3.0-only.
+- Modified versions offered over a network must provide their corresponding source as required by section 13.
+- Documentation and distribution metadata must not imply a permissive license.
+
+The license decision completes the final governance prerequisite for beginning application implementation.
