@@ -1,0 +1,9 @@
+{% extends "gateway/base.html" %}{% load i18n %}{% block content %}
+<section class="card narrow">
+  <p class="eyebrow">{% if editing %}{% translate "Mailbox settings" %}{% else %}{% translate "Step 2 of 2" %}{% endif %}</p>
+  <h1>{% if editing %}{% blocktranslate with name=mailbox.name %}Edit {{ name }}{% endblocktranslate %}{% else %}{% translate "Connect an IMAP mailbox" %}{% endif %}</h1>
+  <p>{% translate "MailGate uses TLS and read-only IMAP commands. It never sends, deletes, moves, or marks mail." %}</p>
+  {% if editing %}<p>{% translate "The stored password is never displayed. Leave “New password” blank to keep it." %}</p>{% endif %}
+  <form method="post">{% csrf_token %}{{ form.as_p }}<button>{% if editing %}{% translate "Save changes" %}{% else %}{% translate "Save mailbox" %}{% endif %}</button></form>
+  {% if editing %}<p><a class="danger" href="{% url 'mailbox-delete' mailbox.pk %}">{% translate "Delete this mailbox connection" %}</a></p>{% endif %}
+</section>{% endblock %}

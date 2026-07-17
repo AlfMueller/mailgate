@@ -1,4 +1,6 @@
 # Runtime dependencies. Keep these aligned with pyproject.toml.
 Django==5.2.16
+cryptography==46.0.3
 gunicorn==26.0.0
 psycopg[binary]==3.3.4
+whitenoise==6.12.0

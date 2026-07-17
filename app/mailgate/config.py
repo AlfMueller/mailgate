@@ -47,7 +47,5 @@ def get_secret(name: str, *, minimum_length: int = 1) -> str:
         raise ConfigurationError(f"Set {name}_FILE (preferred) or {name}")
 
     if len(value) < minimum_length:
-        raise ConfigurationError(
-            f"{name} must contain at least {minimum_length} characters"
-        )
+        raise ConfigurationError(f"{name} must contain at least {minimum_length} characters")
     return value

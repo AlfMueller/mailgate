@@ -1,0 +1,36 @@
+{% extends "gateway/base.html" %}
+{% load i18n gateway_labels %}
+{% block content %}
+<p><a href="{% url 'message-list' %}?state={{ item.state }}">← {% translate "Back" %}</a></p>
+{% translate "(no subject)" as no_subject %}
+<h1>{{ item.subject|default:no_subject }}</h1>
+<div class="grid">
+  <section class="card">
+    <h2>{% translate "Safe content" %}</h2>
+    <p><strong>{% translate "From:" %}</strong> {{ item.sender_name }} &lt;{{ item.sender }}&gt;</p>
+    <pre>{{ item.sanitized_text }}</pre>
+  </section>
+  <aside class="card">
+    <h2>{% translate "Decision" %}</h2>
+    <p class="risk-{{ item.risk }}">{% translate "Risk:" %} {% if item.risk == "low" %}{% translate "low" %}{% elif item.risk == "high" %}{% translate "high" %}{% else %}{% translate "medium" %}{% endif %}</p>
+    <p><strong>{% translate "Unverified provider header claims:" %}</strong> SPF {{ item.authentication.spf|default:"unknown"|auth_label }} · DKIM {{ item.authentication.dkim|default:"unknown"|auth_label }} · DMARC {{ item.authentication.dmarc|default:"unknown"|auth_label }} · ARC {{ item.authentication.arc|default:"unknown"|auth_label }}</p>
+    <ul>{% for signal in item.signals %}<li>{{ signal|signal_label }}</li>{% empty %}<li>{% translate "No warning signals" %}</li>{% endfor %}</ul>
+    {% if item.state == "quarantined" %}
+    <form method="post" action="{% url 'message-decide' item.id %}">
+      {% csrf_token %}
+      <button name="decision" value="approved">{% translate "Approve safe text" %}</button>
+      <button class="danger" name="decision" value="rejected">{% translate "Reject" %}</button>
+    </form>
+    {% endif %}
+  </aside>
+</div>
+<section class="card">
+  <h2>{% translate "Attachment inventory" %}</h2>
+  <p>{% translate "Attachment bytes are not stored or exposed to the agent. PDFs are contained but not inspected." %}</p>
+  {% for attachment in item.attachments.all %}
+  <p>{{ attachment.filename }} · {{ attachment.content_type }} · {{ attachment.size }} {% translate "bytes" %} {% if attachment.dangerous %}<strong class="risk-high">{% translate "dangerous type" %}</strong>{% endif %}</p>
+  {% empty %}
+  <p>{% translate "No attachments." %}</p>
+  {% endfor %}
+</section>
+{% endblock %}

@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=77"]
+requires = ["setuptools==80.9.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -9,21 +9,23 @@ description = "Self-hosted email security gateway with a restricted read-only AI
 readme = "README.md"
 requires-python = ">=3.13,<3.15"
 license = "AGPL-3.0-only"
+license-files = ["LICENSE"]
 authors = [
   { name = "Alf Müller" },
 ]
 classifiers = [
   "Development Status :: 2 - Pre-Alpha",
   "Framework :: Django :: 5.2",
-  "License :: OSI Approved :: GNU Affero General Public License v3",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
   "Django==5.2.16",
+  "cryptography==46.0.3",
   "gunicorn==26.0.0",
   "psycopg[binary]==3.3.4",
+  "whitenoise==6.12.0",
 ]
 
 [project.urls]
@@ -33,7 +35,19 @@ Repository = "https://github.com/AlfMueller/mailgate.git"
 
 [tool.setuptools.packages.find]
 where = ["app", "worker"]
-include = ["mailgate*"]
+include = ["mailgate*", "gateway*"]
 
-[tool.setuptools]
-license-files = ["LICENSE"]
+[tool.setuptools.package-data]
+gateway = ["templates/**/*.html", "static/**/*"]
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"app/mailgate/test_settings.py" = ["F403", "F405", "E402", "S105"]
+"tests/*" = ["S106"]

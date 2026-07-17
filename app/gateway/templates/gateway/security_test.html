@@ -1,0 +1,33 @@
+{% extends "gateway/base.html" %}
+{% load i18n gateway_labels %}
+{% block content %}
+<h1>{% translate "Parser/policy adversarial self-test" %}</h1>
+<section class="card">
+  <h2>{% translate "Safe local simulation" %}</h2>
+  <p>{% translate "This test does not send email, connect to IMAP, change the mailbox cursor, or create message records. Fixed synthetic attack messages, a benign control, and a PDF-containment case pass through the worker parser and policy." %}</p>
+  <p>{% translate "The selected mailbox supplies only its trusted provider-claim profile. If none is configured, the forged-claim case uses a reserved synthetic ID. Credentials, host, messages, and enabled state are not used." %}</p>
+  <p>{% translate "Passing proves only these fixed regression cases. It cannot prove that every prompt injection is detected. PDF content is contained but not inspected." %}</p>
+  {% if has_mailboxes %}<form method="post">{% csrf_token %}{{ form.as_p }}<button>{% translate "Run self-test" %}</button></form>{% else %}<p>{% translate "Configure a mailbox before running the suite." %}</p>{% endif %}
+</section>
+{% if results is not None %}
+<section class="card">
+  <h2>{% translate "Results" %}</h2>
+  <table>
+    <thead><tr><th>{% translate "Case" %}</th><th>{% translate "Result" %}</th><th>{% translate "Outcome" %}</th><th>{% translate "Risk" %}</th><th>{% translate "State" %}</th><th>{% translate "DMARC claim" %}</th><th>{% translate "Signals" %}</th></tr></thead>
+    <tbody>
+      {% for result in results %}
+      <tr>
+        <td><strong>{{ result.name }}</strong><br>{{ result.description }}</td>
+        <td>{% if result.passed %}<span class="risk-low">{% translate "PASS" %}</span>{% else %}<span class="risk-high">{% translate "FAIL" %}</span>{% endif %}</td>
+        <td>{% if result.outcome == "detected" %}{% translate "detected" %}{% elif result.outcome == "contained" %}{% translate "contained, not inspected" %}{% else %}{% translate "benign control" %}{% endif %}</td>
+        <td class="risk-{{ result.risk }}">{% if result.risk == "low" %}{% translate "low" %}{% elif result.risk == "high" %}{% translate "high" %}{% else %}{% translate "medium" %}{% endif %}</td>
+        <td>{% if result.state == "quarantined" %}{% translate "quarantined" %}{% elif result.state == "approved" %}{% translate "approved" %}{% else %}{% translate "rejected" %}{% endif %}</td>
+        <td>{{ result.dmarc_claim|auth_label }}</td>
+        <td>{% for signal in result.signals %}{{ signal|signal_label }}{% if not forloop.last %}, {% endif %}{% endfor %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}
