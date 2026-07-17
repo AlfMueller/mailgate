@@ -5,11 +5,14 @@ x-app-environment: &app-environment
   MAILGATE_DATABASE_ENGINE: postgresql
   MAILGATE_DATABASE_HOST: db
   MAILGATE_DATABASE_NAME: ${MAILGATE_DATABASE_NAME:-mailgate}
-  MAILGATE_DATABASE_PASSWORD_FILE: /run/secrets/postgres_password
   MAILGATE_DATABASE_PORT: "5432"
-  MAILGATE_DATABASE_USER: ${MAILGATE_DATABASE_USER:-mailgate}
   MAILGATE_ENVIRONMENT: ${MAILGATE_ENVIRONMENT:-development}
   MAILGATE_SECRET_KEY_FILE: /run/secrets/django_secret_key
+  MAILGATE_MASTER_KEY_FILE: /run/secrets/master_key
+  MAILGATE_HTTPS_ONLY: ${MAILGATE_HTTPS_ONLY:-false}
+  MAILGATE_TRUST_PROXY_HEADERS: ${MAILGATE_TRUST_PROXY_HEADERS:-false}
+  MAILGATE_CSRF_TRUSTED_ORIGINS: ${MAILGATE_CSRF_TRUSTED_ORIGINS:-}
+  MAILGATE_WORKER_POLL_INTERVAL_SECONDS: ${MAILGATE_WORKER_POLL_INTERVAL_SECONDS:-30}
 
 x-app-hardening: &app-hardening
   cap_drop:
@@ -27,7 +30,7 @@ services:
     environment:
       POSTGRES_DB: ${MAILGATE_DATABASE_NAME:-mailgate}
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-      POSTGRES_USER: ${MAILGATE_DATABASE_USER:-mailgate}
+      POSTGRES_USER: mailgate_admin
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
@@ -43,21 +46,80 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  migrate:
+  install-db-bootstrap:
+    image: postgres:17.10-bookworm@sha256:4f736ae292687621d4dbe0d499ffd024a36bd2ee7d8ca6f2ccd4c800f047b394
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "/bootstrap/bootstrap-roles.sh"]
+    environment:
+      PGHOST: db
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB: ${MAILGATE_DATABASE_NAME:-mailgate}
+      POSTGRES_USER: mailgate_admin
+    entrypoint:
+      - sh
+      - -c
+      - 'export PGPASSWORD="$$(cat "$$PGPASSWORD_FILE")"; exec "$$@"'
+      - --
+    networks:
+      - database
+    restart: "no"
+    secrets:
+      - postgres_password
+      - postgres_migrate_password
+      - postgres_web_password
+      - postgres_worker_password
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./deploy/postgres/bootstrap-roles.sh:/bootstrap/bootstrap-roles.sh:ro
+
+  install-migrate:
     <<: *app-hardening
     build:
       context: .
     command: ["python", "app/manage.py", "migrate", "--noinput"]
     depends_on:
-      db:
-        condition: service_healthy
-    environment: *app-environment
+      install-db-bootstrap:
+        condition: service_completed_successfully
+    environment:
+      <<: *app-environment
+      MAILGATE_DATABASE_PASSWORD_FILE: /run/secrets/postgres_migrate_password
+      MAILGATE_DATABASE_USER: mailgate_migrate
     networks:
       - database
     restart: "no"
     secrets:
       - django_secret_key
+      - master_key
+      - postgres_migrate_password
+
+  install-db-permissions:
+    image: postgres:17.10-bookworm@sha256:4f736ae292687621d4dbe0d499ffd024a36bd2ee7d8ca6f2ccd4c800f047b394
+    depends_on:
+      install-migrate:
+        condition: service_completed_successfully
+    command: ["sh", "/permissions/apply-permissions.sh"]
+    environment:
+      PGHOST: db
+      PGPASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB: ${MAILGATE_DATABASE_NAME:-mailgate}
+      POSTGRES_USER: mailgate_admin
+    entrypoint:
+      - sh
+      - -c
+      - 'export PGPASSWORD="$$(cat "$$PGPASSWORD_FILE")"; exec "$$@"'
+      - --
+    networks:
+      - database
+    restart: "no"
+    secrets:
       - postgres_password
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - ./deploy/postgres/apply-permissions.sh:/permissions/apply-permissions.sh:ro
 
   web:
     <<: *app-hardening
@@ -65,9 +127,13 @@ services:
       context: .
     restart: unless-stopped
     depends_on:
-      migrate:
+      install-db-permissions:
         condition: service_completed_successfully
-    environment: *app-environment
+    environment:
+      <<: *app-environment
+      MAILGATE_DATABASE_PASSWORD_FILE: /run/secrets/postgres_web_password
+      MAILGATE_DATABASE_USER: mailgate_web
+      MAILGATE_SETUP_TOKEN_FILE: /run/secrets/setup_token
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready', timeout=3)"]
       interval: 30s
@@ -79,7 +145,9 @@ services:
       - database
     secrets:
       - django_secret_key
-      - postgres_password
+      - master_key
+      - postgres_web_password
+      - setup_token
 
   proxy:
     image: caddy:2.11.4-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
@@ -116,9 +184,12 @@ services:
     command: ["python", "-m", "mailgate_worker"]
     restart: unless-stopped
     depends_on:
-      migrate:
+      install-db-permissions:
         condition: service_completed_successfully
-    environment: *app-environment
+    environment:
+      <<: *app-environment
+      MAILGATE_DATABASE_PASSWORD_FILE: /run/secrets/postgres_worker_password
+      MAILGATE_DATABASE_USER: mailgate_worker
     healthcheck:
       test: ["CMD", "python", "-m", "mailgate_worker", "--check-once"]
       interval: 30s
@@ -130,7 +201,8 @@ services:
       - worker_egress
     secrets:
       - django_secret_key
-      - postgres_password
+      - master_key
+      - postgres_worker_password
 
 networks:
   application:
@@ -145,6 +217,16 @@ secrets:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/django_secret_key
   postgres_password:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_password
+  postgres_migrate_password:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_migrate_password
+  postgres_web_password:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_web_password
+  postgres_worker_password:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_worker_password
+  master_key:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/master_key
+  setup_token:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/setup_token
 
 volumes:
   postgres_data: {}

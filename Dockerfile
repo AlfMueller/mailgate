@@ -23,6 +23,13 @@ COPY app ./app
 COPY worker ./worker
 COPY LICENSE README.md ./
 
+RUN export MAILGATE_ENVIRONMENT=test \
+    MAILGATE_DATABASE_ENGINE=sqlite \
+    MAILGATE_SECRET_KEY=test-only-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx \
+    MAILGATE_MASTER_KEY=MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY= \
+    && python app/compile_translations.py \
+    && python app/manage.py collectstatic --noinput
+
 USER mailgate:mailgate
 
 EXPOSE 8000

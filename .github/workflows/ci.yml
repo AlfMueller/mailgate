@@ -17,11 +17,19 @@ jobs:
         with:
           python-version: "3.13"
           cache: pip
-          cache-dependency-path: requirements.lock
-      - name: Install locked dependencies
-        run: python -m pip install --require-hashes --requirement requirements.lock
+          cache-dependency-path: |
+            requirements.lock
+            requirements-dev.lock
+      - name: Install locked development dependencies
+        run: python -m pip install --require-hashes --requirement requirements-dev.lock
+      - name: Lint and format check
+        run: |
+          ruff check app worker scripts tests
+          ruff format --check app worker scripts tests
       - name: Compile Python sources
         run: python -m compileall -q app worker scripts tests
+      - name: Compile translation catalogs
+        run: python app/compile_translations.py
       - name: Run tests
         env:
           DJANGO_SETTINGS_MODULE: mailgate.test_settings
@@ -37,6 +45,14 @@ jobs:
           MAILGATE_SECRET_KEY: test-only-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
           PYTHONPATH: app:worker
         run: python app/manage.py check --settings=mailgate.test_settings
+      - name: Verify migrations are committed
+        env:
+          MAILGATE_DATABASE_ENGINE: sqlite
+          MAILGATE_ENVIRONMENT: test
+          MAILGATE_SECRET_KEY: test-only-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+          MAILGATE_MASTER_KEY: MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=
+          PYTHONPATH: app:worker
+        run: python app/manage.py makemigrations --check --dry-run --settings=mailgate.test_settings
 
   container:
     runs-on: ubuntu-latest

@@ -5,7 +5,15 @@ import os
 import secrets
 from pathlib import Path
 
-SECRET_NAMES = ("django_secret_key", "postgres_password")
+SECRET_NAMES = (
+    "django_secret_key",
+    "postgres_password",
+    "postgres_migrate_password",
+    "postgres_web_password",
+    "postgres_worker_password",
+    "master_key",
+    "setup_token",
+)
 
 
 def create_secret(path: Path, length: int) -> None:
@@ -21,14 +29,35 @@ def main() -> int:
     target = repository / ".local" / "secrets"
     target.mkdir(mode=0o700, parents=True, exist_ok=True)
 
-    existing = [name for name in SECRET_NAMES if (target / name).exists()]
-    if existing:
-        names = ", ".join(existing)
-        raise SystemExit(f"Refusing to overwrite existing secret file(s): {names}")
+    invalid = [
+        name for name in SECRET_NAMES if (target / name).exists() and not (target / name).is_file()
+    ]
+    if invalid:
+        raise SystemExit("Refusing non-file secret path(s): " + ", ".join(invalid))
 
-    create_secret(target / "django_secret_key", 64)
-    create_secret(target / "postgres_password", 48)
-    print(f"Created local secret files in {target}")
+    missing = [name for name in SECRET_NAMES if not (target / name).exists()]
+    if not missing:
+        raise SystemExit("All local secret files already exist; nothing was changed")
+
+    if "django_secret_key" in missing:
+        create_secret(target / "django_secret_key", 64)
+    if "postgres_password" in missing:
+        create_secret(target / "postgres_password", 48)
+    for name in ("postgres_migrate_password", "postgres_web_password", "postgres_worker_password"):
+        if name in missing:
+            create_secret(target / name, 48)
+    if "master_key" in missing:
+        # Fernet-compatible, URL-safe 32-byte key, independent from Django.
+        import base64
+
+        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+        descriptor = os.open(target / "master_key", flags, 0o600)
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            handle.write(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii"))
+            handle.write("\n")
+    if "setup_token" in missing:
+        create_secret(target / "setup_token", 32)
+    print(f"Created missing local secret files in {target}; existing files were unchanged")
     return 0
 
 
