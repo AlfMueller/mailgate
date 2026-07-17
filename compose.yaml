@@ -9,6 +9,7 @@ x-app-environment: &app-environment
   MAILGATE_ENVIRONMENT: ${MAILGATE_ENVIRONMENT:-development}
   MAILGATE_SECRET_KEY_FILE: /run/secrets/django_secret_key
   MAILGATE_MASTER_KEY_FILE: /run/secrets/master_key
+  MAILGATE_MASTER_KEYRING_FILE: /run/secrets/master_keyring
   MAILGATE_HTTPS_ONLY: ${MAILGATE_HTTPS_ONLY:-false}
   MAILGATE_IMAP_ALLOWED_HOST: ${MAILGATE_IMAP_ALLOWED_HOST:-imap.example.test}
   MAILGATE_TRUST_PROXY_HEADERS: ${MAILGATE_TRUST_PROXY_HEADERS:-false}
@@ -95,6 +96,7 @@ services:
     secrets:
       - django_secret_key
       - master_key
+      - master_keyring
       - postgres_migrate_password
 
   install-db-permissions:
@@ -148,6 +150,7 @@ services:
     secrets:
       - django_secret_key
       - master_key
+      - master_keyring
       - postgres_web_password
       - setup_token
 
@@ -198,7 +201,9 @@ services:
       - postgres_api_password
 
   proxy:
-    image: caddy:2.11.4-alpine@sha256:5f5c8640aae01df9654968d946d8f1a56c497f1dd5c5cda4cf95ab7c14d58648
+    build:
+      context: .
+    image: mailgate-proxy
     restart: unless-stopped
     user: "10001:10001"
     cap_drop:
@@ -258,6 +263,24 @@ services:
       - ./deploy/egress/haproxy.cfg.template:/etc/mailgate/haproxy.cfg.template:ro
       - ./deploy/egress/render-haproxy.sh:/etc/mailgate/render-haproxy.sh:ro
 
+  dkim-resolver:
+    <<: *app-hardening
+    build:
+      context: .
+    command: ["python", "-m", "mailgate_dkim_resolver"]
+    restart: unless-stopped
+    environment:
+      MAILGATE_DOH_URL: ${MAILGATE_DOH_URL:-https://cloudflare-dns.com/dns-query}
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8053/health',timeout=3)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - dkim_dns_internal
+      - dkim_dns_upstream
+
   test-imap-upstream:
     <<: *app-hardening
     profiles:
@@ -312,6 +335,8 @@ services:
         condition: service_completed_successfully
       imap-egress:
         condition: service_healthy
+      dkim-resolver:
+        condition: service_healthy
     environment:
       <<: *app-environment
       MAILGATE_DATABASE_PASSWORD_FILE: /run/secrets/postgres_worker_password
@@ -319,6 +344,7 @@ services:
       MAILGATE_IMAP_EGRESS_ENABLED: "true"
       MAILGATE_IMAP_EGRESS_HOST: imap-egress
       MAILGATE_IMAP_EGRESS_PORT: "10993"
+      MAILGATE_DKIM_RESOLVER_URL: http://dkim-resolver:8053
     healthcheck:
       test: ["CMD", "python", "-m", "mailgate_worker", "--check-once"]
       interval: 30s
@@ -328,9 +354,11 @@ services:
     networks:
       - database
       - imap_egress_internal
+      - dkim_dns_internal
     secrets:
       - django_secret_key
       - master_key
+      - master_keyring
       - postgres_worker_password
 
 networks:
@@ -338,6 +366,9 @@ networks:
     internal: true
   database:
     internal: true
+  dkim_dns_internal:
+    internal: true
+  dkim_dns_upstream: {}
   frontend: {}
   imap_egress_internal:
     internal: true
@@ -358,6 +389,8 @@ secrets:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/postgres_worker_password
   master_key:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/master_key
+  master_keyring:
+    file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/master_keyring
   setup_token:
     file: ${MAILGATE_SECRETS_DIR:-./.local/secrets}/setup_token
   api_django_secret_key:

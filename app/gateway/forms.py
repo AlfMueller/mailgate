@@ -13,6 +13,7 @@ from django.utils.translation import gettext_lazy as _
 
 from gateway.crypto import encrypt_secret
 from gateway.models import Mailbox
+from gateway.providers import effective_imap_host, get_provider_preset
 from gateway.validators import normalise_authserv_ids
 
 
@@ -53,12 +54,22 @@ class MailboxForm(forms.ModelForm):
 
     class Meta:
         model = Mailbox
-        fields = ("name", "host", "port", "username", "password", "trusted_authserv_ids", "enabled")
+        fields = (
+            "name",
+            "provider_key",
+            "host",
+            "port",
+            "username",
+            "password",
+            "trusted_authserv_ids",
+            "enabled",
+        )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         labels = {
             "name": _("Name"),
+            "provider_key": _("Mail provider"),
             "host": _("IMAP host"),
             "port": _("IMAP port"),
             "username": _("Mailbox username"),
@@ -68,6 +79,7 @@ class MailboxForm(forms.ModelForm):
         for field_name, label in labels.items():
             self.fields[field_name].label = label
         self.fields["password"].label = _("Password")
+        self.fields["host"].initial = settings.MAILGATE_IMAP_ALLOWED_HOST
         self.fields["trusted_authserv_ids"].help_text = _(
             "Optional comma-separated IDs from the start of your provider's "
             "Authentication-Results header, for example mx.example.test. "
@@ -82,7 +94,7 @@ class MailboxForm(forms.ModelForm):
             self.fields["password"].required = False
             self.fields["password"].label = _("New password")
             self.fields["password"].help_text = _("Leave blank to keep the stored password.")
-            for field_name in ("host", "port", "username"):
+            for field_name in ("provider_key", "host", "port", "username"):
                 self.fields[field_name].disabled = True
                 self.fields[field_name].help_text = _(
                     "Mailbox identity cannot be changed after creation; add a new mailbox instead."
@@ -111,9 +123,34 @@ class MailboxForm(forms.ModelForm):
         except ValueError as exc:
             raise forms.ValidationError(str(exc)) from exc
 
+    def clean(self):
+        cleaned = super().clean()
+        provider_key = cleaned.get("provider_key")
+        if not provider_key:
+            return cleaned
+        try:
+            preset = get_provider_preset(provider_key)
+        except ValueError as exc:
+            raise forms.ValidationError(str(exc)) from exc
+        preset_host = effective_imap_host(preset, settings.MAILGATE_IMAP_ALLOWED_HOST)
+        if preset_host != settings.MAILGATE_IMAP_ALLOWED_HOST:
+            self.add_error(
+                "provider_key",
+                _("This provider preset is not enabled by the installation allowlist."),
+            )
+            return cleaned
+        cleaned["host"] = preset_host
+        cleaned["port"] = preset.imap_port
+        return cleaned
+
     def save(self, commit=True):
         mailbox = super().save(commit=False)
         password = self.cleaned_data.get("password")
+        preset = get_provider_preset(self.cleaned_data["provider_key"])
+        mailbox.provider_key = preset.key
+        mailbox.preset_version = preset.preset_version
+        mailbox.host = effective_imap_host(preset, settings.MAILGATE_IMAP_ALLOWED_HOST)
+        mailbox.port = preset.imap_port
         if password:
             mailbox.password_encrypted = encrypt_secret(password)
         if commit:

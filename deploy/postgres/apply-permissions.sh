@@ -77,11 +77,13 @@ ROLLBACK;
 
 BEGIN;
 INSERT INTO gateway_mailbox
-  (name, host, port, username, password_encrypted, trusted_authserv_ids,
-   enabled, last_uid, last_error_code, config_version, created_at, updated_at)
+  (name, provider_key, preset_version, host, port, username, password_encrypted,
+   trusted_authserv_ids, enabled, last_uid, last_error_code, config_version,
+   created_at, updated_at)
 VALUES
-  ('permission-check-worker-role', 'imap.example.test', 993, 'owner@example.test',
-   decode('00', 'hex'), '', true, 0, '', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+  ('permission-check-worker-role', 'generic_imaps', 1, 'imap.example.test', 993,
+   'owner@example.test', decode('00', 'hex'), '', true, 0, '', 1,
+   CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 SET LOCAL ROLE mailgate_worker;
 UPDATE gateway_mailbox
    SET last_uid = 1
@@ -160,11 +162,13 @@ DECLARE
   v_version bigint;
 BEGIN
   INSERT INTO gateway_mailbox
-    (name, host, port, username, password_encrypted, trusted_authserv_ids,
-     enabled, last_uid, last_error_code, config_version, created_at, updated_at)
+    (name, provider_key, preset_version, host, port, username, password_encrypted,
+     trusted_authserv_ids, enabled, last_uid, last_error_code, config_version,
+     created_at, updated_at)
   VALUES
-    ('permission-check', 'imap.example.test', 993, 'owner@example.test',
-     decode('00', 'hex'), '', true, 0, '', 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    ('permission-check', 'generic_imaps', 1, 'imap.example.test', 993,
+     'owner@example.test', decode('00', 'hex'), '', true, 0, '', 1,
+     CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
   RETURNING id INTO v_id;
 
   UPDATE gateway_mailbox SET last_uid = 1 WHERE id = v_id

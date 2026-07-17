@@ -134,7 +134,7 @@ def run_prompt_injection_suite(mailbox: Mailbox) -> list[PromptInjectionResult]:
                 and not injection_found
             )
         if case.forged_auth:
-            passed = passed and parsed.authentication["dmarc"] == "pass"
+            passed = passed and parsed.authentication["provider_claims"]["dmarc"] == "pass"
         results.append(
             PromptInjectionResult(
                 name=case.name,
@@ -143,7 +143,7 @@ def run_prompt_injection_suite(mailbox: Mailbox) -> list[PromptInjectionResult]:
                 risk=risk,
                 state=state,
                 signals=tuple(signals),
-                dmarc_claim=parsed.authentication["dmarc"],
+                dmarc_claim=parsed.authentication["provider_claims"]["dmarc"],
                 passed=passed,
             )
         )

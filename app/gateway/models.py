@@ -7,9 +7,17 @@ import uuid
 from django.db import models
 from django.utils import timezone
 
+from gateway.providers import GENERIC_IMAPS, provider_choices
+
 
 class Mailbox(models.Model):
     name = models.CharField(max_length=120)
+    provider_key = models.CharField(
+        max_length=32,
+        choices=provider_choices(),
+        default=GENERIC_IMAPS,
+    )
+    preset_version = models.PositiveSmallIntegerField(default=1, editable=False)
     host = models.CharField(max_length=253)
     port = models.PositiveIntegerField(default=993)
     username = models.CharField(max_length=320)

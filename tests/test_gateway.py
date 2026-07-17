@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.utils import timezone, translation
 from gateway.crypto import decrypt_secret, encrypt_secret
 from gateway.models import ApiToken, Attachment, AuditEvent, Mailbox, Message
+from gateway.providers import PROVIDER_PRESETS
 
 
 class TranslationCompilerTests(SimpleTestCase):
@@ -106,6 +107,14 @@ class CryptoTests(TestCase):
         self.assertEqual(decrypt_secret(ciphertext), "synthetic-password")
 
 
+class ProviderPresetTests(SimpleTestCase):
+    def test_presets_never_invent_authentication_service_ids(self):
+        self.assertEqual(
+            {key: preset.default_authserv_ids for key, preset in PROVIDER_PRESETS.items()},
+            {"generic_imaps": (), "hostpoint": ()},
+        )
+
+
 class OwnerUiTests(TestCase):
     def test_first_owner_can_be_created_only_once(self):
         response = self.client.post(
@@ -146,6 +155,7 @@ class OwnerUiTests(TestCase):
             reverse("mailbox-create"),
             {
                 "name": "Synthetic",
+                "provider_key": "generic_imaps",
                 "host": "imap.example.test",
                 "port": 993,
                 "username": "owner@example.test",
@@ -157,6 +167,52 @@ class OwnerUiTests(TestCase):
         self.assertRedirects(response, reverse("dashboard"))
         mailbox = Mailbox.objects.get()
         self.assertNotIn(b"synthetic-mailbox-password", mailbox.password_encrypted)
+        self.assertEqual(mailbox.provider_key, "generic_imaps")
+        self.assertEqual(mailbox.preset_version, 1)
+
+    @override_settings(MAILGATE_IMAP_ALLOWED_HOST="imap.mail.hostpoint.ch")
+    def test_hostpoint_preset_sets_fixed_imaps_identity_without_authserv_ids(self):
+        owner = get_user_model().objects.create_user(username="owner", password="synthetic")
+        self.client.force_login(owner)
+        response = self.client.post(
+            reverse("mailbox-create"),
+            {
+                "name": "Hostpoint",
+                "provider_key": "hostpoint",
+                "host": "imap.mail.hostpoint.ch",
+                "port": 993,
+                "username": "owner@example.test",
+                "password": "synthetic-mailbox-password",
+                "trusted_authserv_ids": "",
+                "enabled": "on",
+            },
+        )
+        self.assertRedirects(response, reverse("dashboard"))
+        mailbox = Mailbox.objects.get()
+        self.assertEqual(mailbox.provider_key, "hostpoint")
+        self.assertEqual(mailbox.preset_version, 1)
+        self.assertEqual((mailbox.host, mailbox.port), ("imap.mail.hostpoint.ch", 993))
+        self.assertEqual(mailbox.trusted_authserv_ids, "")
+
+    def test_hostpoint_preset_cannot_bypass_installation_host_allowlist(self):
+        owner = get_user_model().objects.create_user(username="owner", password="synthetic")
+        self.client.force_login(owner)
+        response = self.client.post(
+            reverse("mailbox-create"),
+            {
+                "name": "Hostpoint",
+                "provider_key": "hostpoint",
+                "host": "imap.example.test",
+                "port": 993,
+                "username": "owner@example.test",
+                "password": "synthetic-mailbox-password",
+                "trusted_authserv_ids": "",
+                "enabled": "on",
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "not enabled by the installation allowlist")
+        self.assertFalse(Mailbox.objects.exists())
 
     def test_owner_can_edit_mailbox_without_replacing_password_or_identity(self):
         owner = get_user_model().objects.create_user(username="owner", password="synthetic")
@@ -180,6 +236,7 @@ class OwnerUiTests(TestCase):
             reverse("mailbox-edit", args=(mailbox.pk,)),
             {
                 "name": "After",
+                "provider_key": "generic_imaps",
                 "host": "attacker.example.test",
                 "port": 143,
                 "username": "attacker@example.test",
@@ -215,6 +272,7 @@ class OwnerUiTests(TestCase):
             reverse("mailbox-edit", args=(mailbox.pk,)),
             {
                 "name": "Synthetic",
+                "provider_key": "generic_imaps",
                 "host": mailbox.host,
                 "port": mailbox.port,
                 "username": mailbox.username,
@@ -282,6 +340,7 @@ class OwnerUiTests(TestCase):
             reverse("mailbox-create"),
             {
                 "name": "Synthetic",
+                "provider_key": "generic_imaps",
                 "host": "imap.example.test",
                 "port": 993,
                 "username": "owner@example.test",
@@ -314,6 +373,7 @@ class OwnerUiTests(TestCase):
             reverse("mailbox-edit", args=(mailbox.pk,)),
             {
                 "name": mailbox.name,
+                "provider_key": "generic_imaps",
                 "host": mailbox.host,
                 "port": mailbox.port,
                 "username": mailbox.username,

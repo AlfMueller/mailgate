@@ -130,7 +130,25 @@ LOGIN_URL = "login"
 LOGIN_REDIRECT_URL = "dashboard"
 LOGOUT_REDIRECT_URL = "login"
 
-MAILGATE_MASTER_KEY = get_secret("MAILGATE_MASTER_KEY", minimum_length=44)
+master_keyring_configured = (
+    os.getenv("MAILGATE_MASTER_KEYRING") is not None
+    or os.getenv("MAILGATE_MASTER_KEYRING_FILE") is not None
+)
+master_key_configured = (
+    os.getenv("MAILGATE_MASTER_KEY") is not None
+    or os.getenv("MAILGATE_MASTER_KEY_FILE") is not None
+)
+MAILGATE_MASTER_KEYRING = (
+    get_secret("MAILGATE_MASTER_KEYRING", minimum_length=1) if master_keyring_configured else ""
+)
+MAILGATE_MASTER_KEY = (
+    get_secret("MAILGATE_MASTER_KEY", minimum_length=44) if master_key_configured else ""
+)
+if not MAILGATE_MASTER_KEYRING and not MAILGATE_MASTER_KEY:
+    raise ConfigurationError(
+        "Set MAILGATE_MASTER_KEYRING_FILE or MAILGATE_MASTER_KEY_FILE (preferred), "
+        "or the corresponding direct value"
+    )
 if (
     os.getenv("MAILGATE_SETUP_TOKEN") is not None
     or os.getenv("MAILGATE_SETUP_TOKEN_FILE") is not None

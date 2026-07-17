@@ -14,6 +14,8 @@ from email.utils import getaddresses, parsedate_to_datetime
 from html.parser import HTMLParser
 from urllib.parse import urlsplit, urlunsplit
 
+from gateway.authentication import DnsTxtResolver, verify_dkim
+
 MAX_MESSAGE_BYTES = 10 * 1024 * 1024
 MAX_PARTS = 100
 MAX_TEXT_CHARS = 200_000
@@ -107,7 +109,7 @@ class ParsedMessage:
     links: list[str] = field(default_factory=list)
     attachments: list[ParsedAttachment] = field(default_factory=list)
     message_id_hash: str = ""
-    authentication: dict[str, str] = field(default_factory=dict)
+    authentication: dict[str, object] = field(default_factory=dict)
     signals: list[str] = field(default_factory=list)
 
 
@@ -158,12 +160,14 @@ def has_prompt_injection_indicators(*values: str) -> bool:
 
 def parse_authentication_results(values: list[str], trusted_ids: set[str]) -> dict[str, str]:
     result = {item: "unknown" for item in ("spf", "dkim", "dmarc", "arc")}
+    result["authserv_id"] = ""
     if not trusted_ids:
         return result
     for value in values:
         authserv = value.split(";", 1)[0].strip().lower()
         if authserv not in trusted_ids:
             continue
+        result["authserv_id"] = authserv
         for method in result:
             match = re.search(rf"(?:^|[;\s]){method}=([a-zA-Z_-]+)", value, re.I)
             if match:
@@ -178,9 +182,15 @@ def parse_authentication_results(values: list[str], trusted_ids: set[str]) -> di
     return result
 
 
-def parse_message(raw: bytes, *, trusted_authserv_ids: set[str]) -> ParsedMessage:
+def parse_message(
+    raw: bytes,
+    *,
+    trusted_authserv_ids: set[str],
+    dns_txt_resolver: DnsTxtResolver | None = None,
+) -> ParsedMessage:
     if len(raw) > MAX_MESSAGE_BYTES:
         raise UnsafeMessage("message_too_large")
+    independent_dkim = verify_dkim(raw, resolver=dns_txt_resolver)
     message = BytesParser(policy=policy.default).parsebytes(raw)
     defects = getattr(message, "defects", ())
     signals = ["mime_defect"] if defects else []
@@ -202,9 +212,13 @@ def parse_message(raw: bytes, *, trusted_authserv_ids: set[str]) -> ParsedMessag
         subject=_safe_header(message.get("Subject")),
         received_at=received_at,
         message_id_hash=hashlib.sha256(message_id.encode()).hexdigest() if message_id else "",
-        authentication=parse_authentication_results(
-            message.get_all("Authentication-Results", []), trusted_authserv_ids
-        ),
+        authentication={
+            "schema_version": 1,
+            "provider_claims": parse_authentication_results(
+                message.get_all("Authentication-Results", []), trusted_authserv_ids
+            ),
+            "independent": {"dkim": independent_dkim},
+        },
         signals=signals,
     )
     for field_name in ("sender", "sender_name", "subject"):
@@ -302,12 +316,17 @@ def classify(parsed: ParsedMessage) -> tuple[str, int, str]:
 
 def assess(parsed: ParsedMessage) -> tuple[str, str, list[str]]:
     reasons = list(dict.fromkeys(parsed.signals))
-    auth = parsed.authentication
+    provider_claims = parsed.authentication.get("provider_claims", {})
+    independent_dkim = parsed.authentication.get("independent", {}).get("dkim", {})
     if any(
-        auth.get(item) in {"fail", "softfail", "permerror", "temperror"}
+        provider_claims.get(item) in {"fail", "softfail", "permerror", "temperror"}
         for item in ("dmarc", "dkim", "spf")
     ):
         reasons.append("authentication_failure")
+    if independent_dkim.get("result") in {"fail", "permerror"}:
+        reasons.append("independent_dkim_failure")
+    elif independent_dkim.get("result") == "temperror":
+        reasons.append("independent_dkim_temperror")
     if not parsed.sender:
         reasons.append("missing_sender")
     if any(
@@ -315,13 +334,17 @@ def assess(parsed: ParsedMessage) -> tuple[str, str, list[str]]:
         for signal in (
             "dangerous_attachment",
             "authentication_failure",
+            "independent_dkim_failure",
             "prompt_injection_suspected",
         )
     ):
         return "high", "quarantined", reasons
     # Authentication-Results are provider claims carried inside untrusted mail data.
     # Even a complete pass can reduce review urgency, but can never auto-approve.
-    if auth.get("dmarc") == "pass" and not reasons:
+    if independent_dkim.get("result") == "pass" and not reasons:
+        reasons.append("independent_dkim_pass")
+        return "low", "quarantined", reasons
+    if provider_claims.get("dmarc") == "pass" and not reasons:
         reasons.append("provider_authentication_pass")
         return "low", "quarantined", reasons
     reasons.append("manual_review_required")

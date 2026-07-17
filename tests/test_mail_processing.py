@@ -35,7 +35,8 @@ class MailProcessingTests(SimpleTestCase):
             email_bytes(auth="mx.example.test; spf=pass dkim=pass dmarc=pass arc=pass"),
             trusted_authserv_ids={"mx.example.test"},
         )
-        self.assertEqual(parsed.authentication["dmarc"], "pass")
+        self.assertEqual(parsed.authentication["provider_claims"]["dmarc"], "pass")
+        self.assertEqual(parsed.authentication["independent"]["dkim"]["result"], "none")
         self.assertEqual(assess(parsed)[1], "quarantined")
         self.assertIn("provider_authentication_pass", assess(parsed)[2])
 
@@ -51,7 +52,7 @@ class MailProcessingTests(SimpleTestCase):
             email_bytes(auth="attacker.invalid; spf=pass dkim=pass dmarc=pass"),
             trusted_authserv_ids={"mx.example.test"},
         )
-        self.assertEqual(parsed.authentication["dmarc"], "unknown")
+        self.assertEqual(parsed.authentication["provider_claims"]["dmarc"], "unknown")
         self.assertEqual(assess(parsed)[1], "quarantined")
 
     def test_html_scripts_forms_and_remote_images_do_not_survive(self):

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import json
 import os
 import secrets
 from pathlib import Path
@@ -14,6 +15,8 @@ SECRET_NAMES = (
     "postgres_worker_password",
     "api_django_secret_key",
     "master_key",
+    "master_keyring",
+    "backup_key",
     "setup_token",
 )
 
@@ -32,6 +35,35 @@ def make_container_readable(path: Path) -> None:
         # Compose file-backed secrets retain host ownership. The secret directory
         # remains owner-only (0700); files need read permission for UID 10001.
         path.chmod(0o444)
+
+
+def create_fernet_key(path: Path) -> None:
+    import base64
+
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    descriptor = os.open(path, flags, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii"))
+        handle.write("\n")
+    make_container_readable(path)
+
+
+def create_credential_keyring(path: Path) -> None:
+    import base64
+
+    document = {
+        "version": 1,
+        "primary": "k1",
+        "keys": {
+            "k1": base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii"),
+        },
+    }
+    flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
+    descriptor = os.open(path, flags, 0o600)
+    with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+        json.dump(document, handle, separators=(",", ":"), sort_keys=True)
+        handle.write("\n")
+    make_container_readable(path)
 
 
 def main() -> int:
@@ -70,15 +102,13 @@ def main() -> int:
         if name in missing:
             create_secret(target / name, 48)
     if "master_key" in missing:
-        # Fernet-compatible, URL-safe 32-byte key, independent from Django.
-        import base64
-
-        flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL
-        descriptor = os.open(target / "master_key", flags, 0o600)
-        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
-            handle.write(base64.urlsafe_b64encode(secrets.token_bytes(32)).decode("ascii"))
-            handle.write("\n")
-        make_container_readable(target / "master_key")
+        # Legacy fallback for existing installations during migration to the keyring.
+        create_fernet_key(target / "master_key")
+    if "master_keyring" in missing:
+        create_credential_keyring(target / "master_keyring")
+    if "backup_key" in missing:
+        # Independent from the credential keyring and never mounted into runtime services.
+        create_fernet_key(target / "backup_key")
     if "setup_token" in missing:
         create_secret(target / "setup_token", 32)
     print(f"Created missing local secret files in {target}; existing files were unchanged")
