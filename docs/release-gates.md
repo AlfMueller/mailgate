@@ -18,6 +18,14 @@ MailGate is a release candidate, not a production release, until every item belo
 - [x] Browser E2E, PostgreSQL integration, fuzzing, SAST, secret/history scan, container CVE scan,
   SBOM and protected digest/provenance release gates are green.
 - [x] German UI and accessibility review are complete.
+- [ ] Shadow mode, versioned automatic-approval policy, kill switch, decision provenance and owner
+  correction workflow are implemented and tested.
+- [ ] LLMail-Inject plus a privacy-safe benign corpus demonstrate zero known critical attack
+  auto-approvals and acceptable over-detection for the pinned local scanner.
+- [ ] The isolated pilot demonstrates at least 70% correct automatic approval of eligible messages,
+  with the first 100 and then at least 10% randomly audited by the owner.
+- [ ] A reference Hermes/MCP guardrail policy blocks mutating tool calls influenced by untrusted
+  email data, while MailGate itself remains strictly read-only.
 - [ ] A person unfamiliar with the project completes installation in 15 minutes.
 - [ ] The isolated public pilot mailbox runs for at least four weeks with documented false-positive/negative review.
 
