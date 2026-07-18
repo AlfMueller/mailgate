@@ -23,7 +23,7 @@ jobs:
       contents: read
       security-events: write
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - uses: github/codeql-action/init@f52b05f4acaaa234e44466e66d29050e135ea9ef # v4.36.0
         with:
           languages: ${{ matrix.language }}
@@ -34,7 +34,7 @@ jobs:
     name: Secret and history scan
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
       - name: Scan the complete Git history
@@ -47,7 +47,7 @@ jobs:
     name: Container CVE and SBOM
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
       - name: Build the release image
         run: docker build --tag mailgate-security-scan:${{ github.sha }} .
       - name: Verify the embedded proxy runs non-root with one capability
