@@ -4,6 +4,11 @@ updates:
     directory: /
     schedule:
       interval: weekly
+    ignore:
+      # Public V1 stays on the Django 5.2 LTS line. Patch updates remain enabled.
+      - dependency-name: django
+        update-types:
+          - version-update:semver-major
     groups:
       python-runtime:
         dependency-type: production
