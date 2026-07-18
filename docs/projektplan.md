@@ -1,15 +1,17 @@
 # Projektplan: MailGate
 
-Stand: 17. Juli 2026
+Stand: 18. Juli 2026
 
-Status: Produktvision und Kommunikationsgrundlage. Für den technischen V1-Umfang sind
-`docs/decisions/0002-v1-security-boundaries.md` und `docs/release-gates.md` verbindlich.
+Status: Produktvision und Kommunikationsgrundlage. Für den öffentlichen V1-Umfang sind
+`docs/decisions/0002-v1-security-boundaries.md`,
+`docs/decisions/0003-automated-approval-and-agent-guardrails.md`,
+`docs/automation-plan.md` und `docs/release-gates.md` verbindlich.
 
-V1 ist bewusst kleiner als die langfristige Vision in diesem Dokument: MailGate sendet keine
+Der technische Release Candidate ist bewusst kleiner als die öffentliche V1: Er sendet keine
 E-Mails, enthält keinen externen Modell- oder MCP-Aufruf, lädt keine Anhangsinhalte herunter und
-bewertet SPF/DMARC/ARC aus IMAP-Nachrichten nur als Provider-Behauptungen. DKIM wird zusätzlich
-unabhängig über unveränderte Rohbytes und begrenzte DNS-TXT-Abfragen geprüft. Klassifizierungs- und
-Adapterideen bleiben spätere, gesondert zu bedrohungsmodellierende Ausbaustufen.
+bewertet SPF/DMARC/ARC aus IMAP-Nachrichten nur als Provider-Behauptungen. Die öffentliche V1 soll
+zusätzlich 70–80% der geeigneten Pilotnachrichten sicher regelbasiert automatisch freigeben. Modelle
+liefern nur Signale; den Status ändert ausschließlich eine deterministische, versionierte Policy.
 
 Projektname: **MailGate**
 
@@ -66,9 +68,9 @@ Der technische V1-Erfolgsmoment soll innerhalb von 15 Minuten erreichbar sein:
 1. lokalen Doctor ausführen und `docker compose up -d` starten
 2. Einrichtungsassistent im Browser öffnen
 3. eigenes Postfach verbinden und die TLS-/Read-only-Verbindung testen
-4. Testnachricht synchronisieren, prüfen und freigeben
+4. Schattenmodus prüfen und das gewünschte Automatisierungsprofil bestätigen
 5. zeitlich begrenzten Agenten-Schlüssel erzeugen
-6. erste freigegebene, bereinigte Nachricht über die private Read-only-API lesen
+6. erste automatisch freigegebene, bereinigte Nachricht über die private Read-only-API lesen
 
 ## 4. Zielgruppe
 
@@ -234,6 +236,12 @@ Robotik, Elektronik, GitHub, YouTube oder Website.
 WENN security != clean
 DANN quarantine
 
+WENN processing = complete
+  UND independent_dkim = aligned_pass
+  UND scanner = safe
+  UND hard_signals = none
+DANN auto_approve
+
 WENN confidence < 0.70
 DANN needs_review
 
@@ -246,6 +254,9 @@ DANN daily_digest
 
 Die KI empfiehlt eine Aktion. Nur das deterministische Regelwerk darf den
 tatsächlichen Status verändern.
+
+Die technische RC-Version arbeitet noch manuell. Für die öffentliche V1 gelten die Profile,
+Metriken, harten Sperren und Pilotkriterien aus [dem Automatisierungsplan](automation-plan.md).
 
 ## 8. Nachrichtenstatus
 
@@ -476,6 +487,20 @@ einsortiert.
 
 **Abnahme:** Manipulierte Modellantworten können keine nicht erlaubte Aktion
 auslösen.
+
+### Phase 2a: Sichere automatische Freigabe
+
+- unabhängiges DKIM-/From-Alignment und zusätzliche deterministische Signale
+- lokaler, austauschbarer Scanner-Sidecar ohne Internetzugriff
+- LLMail-Inject- und benigner Benchmarkkorpus
+- Schattenmodus, ausgewogenes Profil und versionierte Freigabepolicy
+- Entscheidungsgründe, Stichprobenprüfung, Kill Switch und Rollback
+- optionaler Azure-Prompt-Shields-Zusatzscanner mit ausdrücklicher Zustimmung
+- Hermes-/MCP-Referenzregeln für Invariant-kompatible Aktionsguardrails
+
+**Abnahme:** Im isolierten Pilot werden mindestens 70% und angestrebt 70–80% der geeigneten
+Nachrichten korrekt automatisch freigegeben. Bekannte Angriffsfälle, technische Fehler und
+unsichere Ergebnisse werden nie automatisch freigegeben.
 
 ### Phase 3: Grafische Oberfläche
 

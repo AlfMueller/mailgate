@@ -2,6 +2,9 @@
 
 Status: Accepted for the release candidate
 
+Automatic approval for public V1 is proposed separately in ADR 0003. All boundaries below remain
+binding; ADR 0003 supersedes only the manual-only state-transition restriction.
+
 ## Decision
 
 - MailGate uses IMAPS only, selects `INBOX` read-only and fetches with `BODY.PEEK[]`.
