@@ -1,5 +1,5 @@
 # Runtime dependencies. Keep these aligned with pyproject.toml.
-Django==5.2.16
+Django==6.0.7
 cryptography==49.0.0
 dkimpy==1.1.8
 dnspython==2.8.0

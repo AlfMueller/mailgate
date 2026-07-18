@@ -21,7 +21,7 @@ classifiers = [
   "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
-  "Django==5.2.16",
+  "Django==6.0.7",
   "cryptography==49.0.0",
   "dkimpy==1.1.8",
   "dnspython==2.8.0",
