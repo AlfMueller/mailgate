@@ -1,6 +1,7 @@
 # Architecture
 
-Status: V1.0.0 release candidate; independent installation and four-week pilot gates remain open.
+Status: technical V1.0.0 release candidate. Public V1 additionally requires the safe auto-approval
+pipeline in `docs/automation-plan.md`, independent installation, and its four-week measured pilot.
 
 ## Components and authority
 
