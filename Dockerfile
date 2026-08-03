@@ -2,10 +2,34 @@
 
 FROM golang:1.26.5-bookworm@sha256:1ecb7edf62a0408027bd5729dfd6b1b8766e578e8df93995b225dfd0944eb651 AS caddy-builder
 
+ARG CADDY_VERSION=v2.11.4
+ARG GO_TEXT_VERSION=v0.39.0
+ARG GRPC_VERSION=v1.82.1
+
 ENV CGO_ENABLED=0
 
-RUN GOBIN=/out go install github.com/caddyserver/caddy/v2/cmd/caddy@v2.11.4 \
-    && test -x /out/caddy
+# Caddy v2.11.4 predates fixes for CVE-2026-56852 and GHSA-hrxh-6v49-42gf.
+# Build that release from its module source while overriding only the affected
+# transitive dependencies; remove the overrides after Caddy publishes them.
+RUN set -eux; \
+    module_cache="$(go env GOMODCACHE)"; \
+    go mod download "github.com/caddyserver/caddy/v2@${CADDY_VERSION}"; \
+    mkdir -p /src/caddy-build /out; \
+    cp "${module_cache}/github.com/caddyserver/caddy/v2@${CADDY_VERSION}/cmd/caddy/main.go" \
+        /src/caddy-build/main.go; \
+    cd /src/caddy-build; \
+    go mod init mailgate.local/caddy; \
+    go mod edit "-require=github.com/caddyserver/caddy/v2@${CADDY_VERSION}"; \
+    go mod edit "-require=golang.org/x/text@${GO_TEXT_VERSION}"; \
+    go mod edit "-require=google.golang.org/grpc@${GRPC_VERSION}"; \
+    go mod tidy; \
+    go build -mod=readonly -trimpath -o /out/caddy .; \
+    /out/caddy version | grep -F "${CADDY_VERSION}"; \
+    go version -m /out/caddy | awk -v version="${GO_TEXT_VERSION}" \
+        '$1 == "dep" && $2 == "golang.org/x/text" && $3 == version { found=1 } END { exit !found }'; \
+    go version -m /out/caddy | awk -v version="${GRPC_VERSION}" \
+        '$1 == "dep" && $2 == "google.golang.org/grpc" && $3 == version { found=1 } END { exit !found }'; \
+    test -x /out/caddy
 
 FROM python:3.14.6-slim-bookworm@sha256:86f975aca15cf04a40b399eebede9aea7c82eae084d1f1a0a6ef6bcaae871a30
 
