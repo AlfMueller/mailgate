@@ -22,7 +22,7 @@ classifiers = [
 ]
 dependencies = [
   "Django==5.2.16",
-  "cryptography==49.0.0",
+  "cryptography==50.0.0",
   "dkimpy==1.1.8",
   "dnspython==2.8.0",
   "gunicorn==26.0.0",
