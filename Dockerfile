@@ -31,7 +31,7 @@ RUN set -eux; \
         '$1 == "dep" && $2 == "google.golang.org/grpc" && $3 == version { found=1 } END { exit !found }'; \
     test -x /out/caddy
 
-FROM python:3.14.6-slim-bookworm@sha256:86f975aca15cf04a40b399eebede9aea7c82eae084d1f1a0a6ef6bcaae871a30
+FROM python:3.15.0b3-slim-bookworm@sha256:e4408792d58d928261ed76a21a28daaf3339111e0f8cefb8f8c70b139ad94c39
 
 ARG APP_UID=10001
 ARG APP_GID=10001
