@@ -41,8 +41,8 @@ except ModuleNotFoundError:
 
 RUN_E2E = os.getenv("MAILGATE_RUN_E2E") == "1"
 EXPECTED_VERSIONS = {
-    "playwright": "1.61.0",
-    "axe-playwright-python": "0.1.7",
+    "playwright": "1.62.0",
+    "axe-playwright-python": "0.1.8",
 }
 SUBJECT = "MailGate E2E synthetic message"
 MAILBOX_NAME = "Synthetic E2E mailbox"
