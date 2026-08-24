@@ -50,7 +50,8 @@ RUN groupadd --gid "${APP_GID}" mailgate \
 WORKDIR /opt/mailgate
 
 COPY requirements.lock ./requirements.lock
-RUN python -m pip install --require-hashes --requirement requirements.lock
+RUN python -m pip install --require-hashes --requirement requirements.lock \
+    && python -m pip uninstall --yes pip
 
 COPY app ./app
 COPY worker ./worker
